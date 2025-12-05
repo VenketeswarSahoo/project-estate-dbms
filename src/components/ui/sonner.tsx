@@ -19,7 +19,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; // prevent SSR mismatch
+  if (!mounted) return null;
 
   return (
     <Sonner

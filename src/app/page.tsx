@@ -1,109 +1,89 @@
 "use client";
 
-import * as React from "react";
-import { ChevronDownIcon } from "lucide-react";
-
-import { Calendar } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import React from "react";
+import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
 import { Button } from "@/components/ui/button";
-
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const Home = () => {
-  return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-      </div>
-    </div>
-  );
-};
+export default function LoginPage() {
+  const { login } = useAuth();
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
 
-export default Home;
-
-function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
-  const [isLoading, setisLoading] = React.useState(false);
-  React.useEffect(() => {
-    setTimeout(() => {
-      setisLoading(false);
-    }, 5000);
-  }, [isLoading]);
-  const onsubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setisLoading(true);
+    setLoading(true);
+
     setTimeout(() => {
-      setisLoading(false);
-      toast.success("Login successful");
-    }, 3000);
+      const success = login(email, password);
+      if (!success) {
+        toast.error("Invalid credentials");
+        setLoading(false);
+      } else {
+        toast.success("Welcome back!");
+      }
+    }, 500);
   };
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Estate Manager</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your credentials to access the account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onsubmit}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </Field>
-              <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-xs underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input id="password" type="password" required />
-              </Field>
-              <Field>
-                <Button type="submit" loading={isLoading}>
-                  Login
-                </Button>
-                <Button variant="outline" type="button">
-                  Login with Google
-                </Button>
-                <FieldDescription className="text-center text-xs">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
+          <form
+            onSubmit={handleLogin}
+            className="grid w-full items-center gap-4"
+          >
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              <p>Demo Credentials:</p>
+              <ul className="list-disc ml-4">
+                <li>ADMIN - alice@estate.com | password123</li>
+                <li>AGENT - bob@estate.com | password123</li>
+                <li>EXECUTOR - charlie@client.com | password123</li>
+                <li>BENEFICIARY - dave@client.com | password123</li>
+              </ul>
+            </div>
+            <Button type="submit" disabled={loading} className="w-full mt-2">
+              {loading ? "Logging in..." : "Login"}
+            </Button>
           </form>
-          <Button onClick={() => toast.success("Clicked")}>Click</Button>
         </CardContent>
       </Card>
     </div>
