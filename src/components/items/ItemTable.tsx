@@ -60,6 +60,7 @@ export function ItemTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
+  const [bulkAction, setBulkAction] = useState("");
 
   const filteredItems = items.filter((item) => {
     const term = searchQuery.toLowerCase();
@@ -96,13 +97,16 @@ export function ItemTable({
 
   const handleBulkAction = (action: string) => {
     toast.success(
-      `Bulk action ${action} triggered for ${selectedItems.length} items`
+      `${action} set to ${selectedItems.length} ${
+        selectedItems.length === 1 ? "item" : "items"
+      }`
     );
     setSelectedItems([]);
   };
 
   const handleBulkMessage = () => {
-    toast.success(`Message dialog triggered for ${selectedItems.length} items`);
+    toast.success(`Message sent to ${selectedItems.length} items`);
+    setSelectedItems([]);
   };
 
   return (
@@ -218,12 +222,23 @@ export function ItemTable({
             {selectedItems.length} selected
           </span>
           <div className="h-4 w-px bg-border mx-2" />
-          <Button variant="outline" onClick={() => handleBulkAction("SALE")}>
-            Set Sale
-          </Button>
-          <Button variant="outline" onClick={() => handleBulkAction("DONATE")}>
-            Set Donate
-          </Button>
+          <Select
+            value={bulkAction}
+            onValueChange={(value) => {
+              setBulkAction(value);
+              handleBulkAction(value);
+            }}
+          >
+            <SelectTrigger className="w-[180px] bg-background">
+              <SelectValue placeholder="Select Action" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="SALE">Sale</SelectItem>
+              <SelectItem value="DISTRIBUTE">Distribute</SelectItem>
+              <SelectItem value="DONATE">Donate</SelectItem>
+              <SelectItem value="OTHER">Other</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={() => handleBulkMessage()}>
             Send Message
           </Button>
@@ -302,18 +317,8 @@ export function ItemTable({
                         )}
                       </TableCell>
                     )}
-                    <TableCell
-                      className="font-mono cursor-pointer hover:underline"
-                      onClick={() => router.push(`/dashboard/items/${item.id}`)}
-                    >
-                      {item.uid}
-                    </TableCell>
-                    <TableCell
-                      className="font-medium cursor-pointer hover:underline"
-                      onClick={() => router.push(`/dashboard/items/${item.id}`)}
-                    >
-                      {item.name}
-                    </TableCell>
+                    <TableCell className="font-mono">{item.uid}</TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
                       {clients.find((c) => c.id === item.clientId)?.name ||
                         "Unknown"}
