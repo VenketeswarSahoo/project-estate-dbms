@@ -39,6 +39,7 @@ import {
 } from "../ui/dropdown-menu";
 
 import { BarcodeScanner } from "@/components/common/BarcodeScanner";
+import { ScanDialog } from "../common/ScanDialog";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -118,7 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className="pl-10 w-64 md:w-80"
                 />
               </div>
-              <BarcodeScanner />
+              <ScanDialog />
             </div>
           </div>
           {/* Right side */}

@@ -10,7 +10,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Scan } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Scan, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAppStore } from "@/store/store";
 import { useRouter } from "next/navigation";
@@ -20,14 +21,35 @@ export function BarcodeScanner() {
   const router = useRouter();
   const { items } = useAppStore();
 
+  const [manualBarcode, setManualBarcode] = useState("");
+
+  const handleManualSearch = () => {
+    if (!manualBarcode) return;
+
+    const foundItem = items.find((i) => i.barcode === manualBarcode);
+    if (foundItem) {
+      toast.success(`Item found: ${foundItem.name}`);
+      setIsOpen(false);
+      router.push(`/dashboard/items/${foundItem.id}`);
+      setManualBarcode("");
+    } else {
+      toast.error("Barcode not found.");
+    }
+  };
+
   const handleSimulateScan = () => {
-    const randomItem = items[0];
+    // Pick a completely random item
+    if (items.length === 0) {
+      toast.error("No items in database.");
+      return;
+    }
+    const randomIndex = Math.floor(Math.random() * items.length);
+    const randomItem = items[randomIndex];
+
     if (randomItem) {
-      toast.success(`Barcode detected: ${randomItem.barcode}`);
+      toast.success(`Detected: ${randomItem.barcode} (${randomItem.name})`);
       setIsOpen(false);
       router.push(`/dashboard/items/${randomItem.id}`);
-    } else {
-      toast.error("No items found to scan.");
     }
   };
 
@@ -48,6 +70,16 @@ export function BarcodeScanner() {
           <DialogTitle>Scan Barcode</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
+          <div className="flex w-full gap-2">
+            <Input
+              placeholder="Enter Barcode manually..."
+              value={manualBarcode}
+              onChange={(e) => setManualBarcode(e.target.value)}
+            />
+            <Button onClick={handleManualSearch} size="icon">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
           <div className="relative w-full aspect-square bg-black rounded-lg overflow-hidden">
             {isOpen && (
               <Webcam
@@ -61,10 +93,14 @@ export function BarcodeScanner() {
             </div>
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Point camera at a barcode.
+            Point camera at a barcode or enter manually.
           </p>
-          <Button onClick={handleSimulateScan} className="w-full">
-            Simulate Scan Detection
+          <Button
+            variant="secondary"
+            onClick={handleSimulateScan}
+            className="w-full"
+          >
+            Simulate Random Scan
           </Button>
         </div>
       </DialogContent>
