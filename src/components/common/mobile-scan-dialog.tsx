@@ -35,10 +35,8 @@ export function MobileScanDialog({
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
     onOpenChange?.(false);
-    const item = items.find(
-      (item) => Number(item.barcode) === Number(decodedText)
-    );
-    router.push(`/items/${item?.id}`);
+    const item = items.find((item) => item.barcode === decodedText);
+    router.push(`/dashboard/items/${item?.id}`);
   };
 
   const handleScanError = (error: string) => {
