@@ -34,8 +34,13 @@ export function BarcodeScanner() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Scan Barcode">
+        <Button
+          variant="outline"
+          title="Scan Barcode"
+          className="text-sm w-[180px]"
+        >
           <Scan className="h-5 w-5" />
+          Scan Barcode
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">

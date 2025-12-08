@@ -13,7 +13,7 @@ export interface Client {
   id: string;
   name: string;
   address: string;
-  agentId: string;
+
   executorId: string;
   beneficiaryIds: string[];
   savedBeneficiaries?: string[];
@@ -29,9 +29,7 @@ export interface Item {
   clientId: string;
   name: string;
   description: string;
-  category: string;
-  location: string;
-  value: number;
+  pieces: number;
   photos: string[];
   barcode: string;
   uid: string;
@@ -39,7 +37,6 @@ export interface Item {
 
   action?: ItemAction;
   actionNote?: string;
-  pieces: number;
 
   createdAt: string;
   updatedAt: string;

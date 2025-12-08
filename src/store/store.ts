@@ -29,6 +29,10 @@ interface AppState {
   addClientDonationRecipient: (clientId: string, name: string) => void;
   addClientAction: (clientId: string, action: string) => void;
 
+  addClient: (client: Client) => void;
+  updateClient: (id: string, updates: Partial<Client>) => void;
+  deleteClient: (id: string) => void;
+
   batchUpdateItems: (ids: string[], updates: Partial<Item>) => void;
   batchAddMessage: (messages: Message[]) => void;
 }
@@ -117,6 +121,19 @@ export const useAppStore = create<AppState>()(
           }),
         })),
 
+      addClient: (client) =>
+        set((state) => ({ clients: [...state.clients, client] })),
+      updateClient: (id, updates) =>
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+          ),
+        })),
+      deleteClient: (id) =>
+        set((state) => ({
+          clients: state.clients.filter((c) => c.id !== id),
+        })),
+
       batchUpdateItems: (ids, updates) =>
         set((state) => ({
           items: state.items.map((item) =>
@@ -133,6 +150,19 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "estate-app-storage",
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0) {
+          return {
+            users: MOCK_USERS,
+            clients: MOCK_CLIENTS,
+            items: MOCK_ITEMS,
+            messages: MOCK_MESSAGES,
+            currentUser: persistedState.currentUser || null,
+          };
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
         currentUser: state.currentUser,
         users: state.users,

@@ -75,13 +75,21 @@ export default function LoginPage() {
               <p>Demo Credentials:</p>
               <ul className="list-disc ml-4">
                 <li>ADMIN - alice@estate.com | password123</li>
-                <li>AGENT - bob@estate.com | password123</li>
-                <li>EXECUTOR - charlie@client.com | password123</li>
-                <li>BENEFICIARY - dave@client.com | password123</li>
+                <li>AGENT 1 - bob@estate.com | password123</li>
+                <li>AGENT 2 - sarah@estate.com | password123</li>
+                <li>EXECUTOR 1 - charlie@smith.com | password123</li>
+                <li>EXECUTOR 2 - diana@wayne.com | password123</li>
+                <li>BENEFICIARY 1 - dave@smith.com | password123</li>
+                <li>BENEFICIARY 2 - eve@smith.com | password123</li>
               </ul>
             </div>
-            <Button type="submit" disabled={loading} className="w-full mt-2">
-              {loading ? "Logging in..." : "Login"}
+            <Button
+              type="submit"
+              disabled={loading}
+              loading={loading}
+              className="w-full mt-2"
+            >
+              Login
             </Button>
           </form>
         </CardContent>

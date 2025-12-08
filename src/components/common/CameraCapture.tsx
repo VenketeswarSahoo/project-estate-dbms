@@ -43,8 +43,9 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" className="text-xs">
           <Camera className="h-4 w-4" />
+          Take Photo
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">

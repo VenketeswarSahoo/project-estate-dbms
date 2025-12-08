@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Item, Client } from "@/types";
 import { Button } from "@/components/ui/button";
+import { CameraCapture } from "@/components/common/CameraCapture";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -30,11 +32,6 @@ import { v4 as uuidv4 } from "uuid";
 const itemSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   description: z.string().optional(),
-  category: z.string().min(1, { message: "Category is required." }),
-  location: z.string().min(1, { message: "Location is required." }),
-  value: z.coerce
-    .number()
-    .min(0, { message: "Value must be a positive number." }),
   clientId: z.string().min(1, { message: "Client is required." }),
   isLocked: z.boolean().default(false),
   pieces: z.coerce
@@ -43,6 +40,7 @@ const itemSchema = z.object({
     .default(1),
   action: z.enum(["SALE", "DISTRIBUTE", "DONATE", "OTHER"]).optional(),
   actionNote: z.string().optional(),
+  photos: z.array(z.string()).optional(),
 });
 
 type ItemFormValues = z.infer<typeof itemSchema>;
@@ -56,6 +54,7 @@ interface ItemFormProps {
 
 import { useAppStore } from "@/store/store";
 import { useAuth } from "@/providers/auth";
+import Image from "next/image";
 
 export function ItemForm({
   initialData,
@@ -67,6 +66,33 @@ export function ItemForm({
   const { addClientBeneficiary, addClientDonationRecipient, addClientAction } =
     useAppStore();
   const [isUnlocked, setIsUnlocked] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const currentPhotos = form.getValues("photos") || [];
+          form.setValue("photos", [...currentPhotos, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleCameraCapture = (imageSrc: string) => {
+    const currentPhotos = form.getValues("photos") || [];
+    form.setValue("photos", [...currentPhotos, imageSrc]);
+  };
+
+  const removePhoto = (index: number) => {
+    const currentPhotos = form.getValues("photos") || [];
+    const newPhotos = [...currentPhotos];
+    newPhotos.splice(index, 1);
+    form.setValue("photos", newPhotos);
+  };
 
   const handleSubmit = (data: ItemFormValues) => {
     if (data.clientId) {
@@ -91,14 +117,12 @@ export function ItemForm({
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      category: initialData?.category || "",
-      location: initialData?.location || "",
-      value: initialData?.value || 0,
       clientId: initialData?.clientId || "",
       isLocked: initialData?.isLocked || false,
       pieces: initialData?.pieces || 1,
       action: initialData?.action,
       actionNote: initialData?.actionNote || "",
+      photos: initialData?.photos || [],
     },
   });
 
@@ -107,14 +131,12 @@ export function ItemForm({
       form.reset({
         name: initialData.name,
         description: initialData.description,
-        category: initialData.category,
-        location: initialData.location,
-        value: initialData.value,
         clientId: initialData.clientId,
         isLocked: initialData.isLocked,
         pieces: initialData.pieces,
         action: initialData.action,
         actionNote: initialData.actionNote,
+        photos: initialData.photos,
       });
     }
   }, [initialData, form]);
@@ -153,58 +175,6 @@ export function ItemForm({
           />
           <FormField
             control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Category"
-                    {...field}
-                    readOnly={effectiveReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Location"
-                    {...field}
-                    readOnly={effectiveReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Value ($)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    {...field}
-                    readOnly={effectiveReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="clientId"
             render={({ field }) => (
               <FormItem>
@@ -231,28 +201,25 @@ export function ItemForm({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="isLocked"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={effectiveReadOnly}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Lock Item</FormLabel>
-                  <FormDescription>
-                    Prevent further edits to this item.
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
         </div>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Item description..."
+                  className="h-24 resize-none "
+                  {...field}
+                  readOnly={effectiveReadOnly}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FormField
@@ -381,25 +348,98 @@ export function ItemForm({
             }}
           />
         </div>
+
+        {/* Photos Section */}
+        <div className="space-y-4">
+          <FormLabel>Photos</FormLabel>
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handlePhotoUpload}
+              disabled={effectiveReadOnly}
+            />
+
+            {!effectiveReadOnly && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Photos
+                </Button>
+                <CameraCapture onCapture={handleCameraCapture} />
+              </>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            {form.watch("photos")?.map((photo, index) => (
+              <div
+                key={index}
+                className="relative group aspect-square rounded-md overflow-hidden border"
+              >
+                <Image
+                  src={photo}
+                  alt={`Item photo ${index + 1}`}
+                  className="object-cover w-full h-full"
+                  width={200}
+                  height={200}
+                />
+                {!effectiveReadOnly && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => removePhoto(index)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {(!form.watch("photos") || form.watch("photos")?.length === 0) && (
+              <div className="col-span-2 md:col-span-4 flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-md text-muted-foreground">
+                <ImageIcon className="h-8 w-8 mb-2" />
+                <p>No photos added yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         <FormField
           control={form.control}
-          name="description"
+          name="isLocked"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
-                <Textarea
-                  placeholder="Item description..."
-                  className="resize-none"
-                  {...field}
-                  readOnly={effectiveReadOnly}
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={effectiveReadOnly}
                 />
               </FormControl>
-              <FormMessage />
+              <div className="space-y-1 leading-none">
+                <FormLabel>Lock Item</FormLabel>
+                <FormDescription>
+                  Prevent further edits to this item.
+                </FormDescription>
+              </div>
             </FormItem>
           )}
         />
-        {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
+
+        <div className="flex justify-end">
+          {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
+        </div>
       </form>
     </Form>
   );

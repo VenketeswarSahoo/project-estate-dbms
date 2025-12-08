@@ -1,3 +1,4 @@
+"use client";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,37 +9,90 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TrendingDown, TrendingUp } from "lucide-react";
+import {
+  Users,
+  Package,
+  MessageSquare,
+  ArrowRightLeft,
+  Gift,
+} from "lucide-react";
+import { useAppStore } from "@/store/store";
+import { useAuth } from "@/providers/auth";
 
 export function SectionCards() {
+  const { user } = useAuth();
+  const { clients, items, messages } = useAppStore();
+
+  if (!user) return null;
+
+  // 1. Calculate Stats
+  const totalClients = clients.length;
+
+  // Filter messages
+  const myGenericMessages = messages.filter(
+    (m) => m.receiverId === user.id && !m.read
+  );
+
+  // Filter Items based on Role
+  let myItems = items;
+  if (user.role === "EXECUTOR") {
+    const myClientIds = clients
+      .filter((c) => c.executorId === user.id)
+      .map((c) => c.id);
+    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+  } else if (user.role === "BENEFICIARY") {
+    // Items distributed to this beneficiary OR items in clients they are part of?
+    // Usually beneficiaries only care about what they are receiving or what is in the estate.
+    // Let's show items from their Estate for visibility, but highlight their distributions.
+    const myClientIds = clients
+      .filter((c) => c.beneficiaryIds.includes(user.id))
+      .map((c) => c.id);
+    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+  }
+
+  const lowStockItems = myItems.length; // Just total items for now
+  const pendingDistributions = myItems.filter(
+    (i) => i.action === "DISTRIBUTE"
+  ).length;
+  const itemsForSale = myItems.filter((i) => i.action === "SALE").length;
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Card className="@container/card">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {(user.role === "ADMIN" ||
+        user.role === "AGENT" ||
+        user.role === "EXECUTOR") && (
+        <Card>
+          <CardHeader>
+            <CardDescription>
+              {user.role === "EXECUTOR" ? "My Estates" : "Total Clients"}
+            </CardDescription>
+            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+              {user.role === "EXECUTOR"
+                ? clients.filter((c) => c.executorId === user.id).length
+                : totalClients}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline">
+                <TrendingUp />
+                +12.5%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className="flex-col items-start gap-1.5 text-sm">
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              Trending up this month <TrendingDown className="size-4" />
+            </div>
+            <div className="text-muted-foreground">
+              Visitors for the last 6 months
+            </div>
+          </CardFooter>
+        </Card>
+      )}
+      <Card>
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription>Total Items</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <TrendingDown className="size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription>New Customers</CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            {lowStockItems}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -56,11 +110,11 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card>
         <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
+          <CardDescription>Pending Actions</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            {pendingDistributions}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -76,16 +130,16 @@ export function SectionCards() {
           <div className="text-muted-foreground">Engagement exceed targets</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card>
         <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
+          <CardDescription>Unread Messages</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {myGenericMessages.length}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <TrendingUp />
-              +4.5%
+              {myGenericMessages.length > 0 ? "+4.5%" : "No Messages"}
             </Badge>
           </CardAction>
         </CardHeader>

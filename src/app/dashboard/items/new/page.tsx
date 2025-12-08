@@ -25,7 +25,7 @@ export default function NewItemPage() {
       ...data,
       uid: `ITEM-${Math.floor(Math.random() * 10000)}`,
       barcode: Math.floor(Math.random() * 10000000000).toString(),
-      photos: [],
+      photos: data.photos || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

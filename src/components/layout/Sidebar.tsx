@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { CustomTooltip } from "../ui/custom-sidebar-tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip } from "../ui/tooltip";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -42,8 +43,8 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
 
   if (user.role === "ADMIN") {
     mainMenuItems.push({
-      href: "/dashboard/users",
-      label: "Users",
+      href: "/dashboard/clients",
+      label: "Clients",
       icon: Users,
     });
   }

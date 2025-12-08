@@ -60,9 +60,6 @@ export function ItemTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-
-  const categories = Array.from(new Set(items.map((i) => i.category))).sort();
 
   const filteredItems = items.filter((item) => {
     const term = searchQuery.toLowerCase();
@@ -78,10 +75,7 @@ export function ItemTable({
     const matchesClient =
       clientFilter === "ALL" || item.clientId === clientFilter;
 
-    const matchesCategory =
-      categoryFilter === "ALL" || item.category === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesClient && matchesCategory;
+    return matchesSearch && matchesStatus && matchesClient;
   });
 
   const handleSelectAll = (checked: boolean) => {
@@ -186,38 +180,6 @@ export function ItemTable({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
-          {/* Category Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className={categoryFilter !== "ALL" ? "bg-accent" : ""}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Category
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                checked={categoryFilter === "ALL"}
-                onCheckedChange={() => setCategoryFilter("ALL")}
-              >
-                All Categories
-              </DropdownMenuCheckboxItem>
-              {categories.map((cat) => (
-                <DropdownMenuCheckboxItem
-                  key={cat}
-                  checked={categoryFilter === cat}
-                  onCheckedChange={() => setCategoryFilter(cat)}
-                >
-                  {cat}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         <div className="flex items-center gap-2">
@@ -248,32 +210,25 @@ export function ItemTable({
             </Button>
           )}
         </div>
-
-        {/* Bulk Actions Toolbar */}
-        {selectedItems.length > 0 && canEdit && (
-          <div className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm animate-in fade-in slide-in-from-top-2">
-            <span className="font-medium px-2">
-              {selectedItems.length} selected
-            </span>
-            <div className="h-4 w-[1px] bg-border mx-2" />
-            <Button
-              variant="secondary"
-              onClick={() => handleBulkAction("SALE")}
-            >
-              Set Sale
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => handleBulkAction("DONATE")}
-            >
-              Set Donate
-            </Button>
-            <Button variant="secondary" onClick={() => handleBulkMessage()}>
-              Send Message
-            </Button>
-          </div>
-        )}
       </div>
+      {/* Bulk Actions Toolbar */}
+      {selectedItems.length > 0 && canEdit && (
+        <div className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm animate-in fade-in slide-in-from-top-2">
+          <span className="font-medium px-2">
+            {selectedItems.length} selected
+          </span>
+          <div className="h-4 w-px bg-border mx-2" />
+          <Button variant="outline" onClick={() => handleBulkAction("SALE")}>
+            Set Sale
+          </Button>
+          <Button variant="outline" onClick={() => handleBulkAction("DONATE")}>
+            Set Donate
+          </Button>
+          <Button variant="outline" onClick={() => handleBulkMessage()}>
+            Send Message
+          </Button>
+        </div>
+      )}
 
       <Card className="p-4">
         <Table>
@@ -292,8 +247,6 @@ export function ItemTable({
               <TableHead>UID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Client</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Value</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
@@ -325,11 +278,7 @@ export function ItemTable({
                 }
 
                 return (
-                  <TableRow
-                    key={item.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/dashboard/items/${item.id}`)}
-                  >
+                  <TableRow key={item.id} className="hover:bg-muted/50">
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selectedItems.includes(item.id)}
@@ -353,14 +302,22 @@ export function ItemTable({
                         )}
                       </TableCell>
                     )}
-                    <TableCell className="font-mono">{item.uid}</TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell
+                      className="font-mono cursor-pointer hover:underline"
+                      onClick={() => router.push(`/dashboard/items/${item.id}`)}
+                    >
+                      {item.uid}
+                    </TableCell>
+                    <TableCell
+                      className="font-medium cursor-pointer hover:underline"
+                      onClick={() => router.push(`/dashboard/items/${item.id}`)}
+                    >
+                      {item.name}
+                    </TableCell>
                     <TableCell>
                       {clients.find((c) => c.id === item.clientId)?.name ||
                         "Unknown"}
                     </TableCell>
-                    <TableCell>{item.location}</TableCell>
-                    <TableCell>${item.value.toLocaleString()}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                         {statusDisplay}
