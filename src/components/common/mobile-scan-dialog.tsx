@@ -19,14 +19,19 @@ import { Camera, Search } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeScanner } from "@/components/common/barcode-scanner";
 
-export function ScanDialog() {
+export function MobileScanDialog({
+  open,
+  onOpenChange,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const router = useRouter();
   const [manualInput, setManualInput] = useState("");
-  const [open, setOpen] = useState(false);
 
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
-    setOpen(false);
+    onOpenChange?.(false);
     router.push(`/items/${decodedText}`);
   };
 
@@ -40,12 +45,12 @@ export function ScanDialog() {
       toast.error("Please enter a UID");
       return;
     }
-    setOpen(false);
+    onOpenChange?.(false);
     router.push(`/items/${manualInput.trim()}`);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline">
           <Camera className="mr-2 h-4 w-4" />
@@ -77,7 +82,7 @@ export function ScanDialog() {
               <BarcodeScanner
                 onScanSuccess={handleScanSuccess}
                 onScanError={handleScanError}
-                onClose={() => setOpen(false)}
+                onClose={() => onOpenChange?.(false)}
               />
             </Card>
           </TabsContent>

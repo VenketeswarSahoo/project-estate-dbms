@@ -66,7 +66,7 @@ export function BarcodeScanner({
         cameraId,
         {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
+          qrbox: { width: 240, height: 120 },
         },
         (decodedText) => {
           // Successfully scanned
@@ -104,19 +104,7 @@ export function BarcodeScanner({
   };
 
   return (
-    <Card className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Camera className="h-5 w-5" />
-          Scan Barcode
-        </h3>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={handleClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
+    <>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -127,12 +115,12 @@ export function BarcodeScanner({
         <div
           id="barcode-reader"
           className="w-full rounded-lg overflow-hidden border"
-          style={{ minHeight: "300px" }}
+          style={{ minHeight: "32vh" }}
         />
 
         {!isScanning && !error && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <Button onClick={startScanning} size="lg">
+            <Button onClick={startScanning} className="w-[172px] text-sm">
               <Camera className="mr-2 h-5 w-5" />
               Start Camera
             </Button>
@@ -145,22 +133,6 @@ export function BarcodeScanner({
           Position barcode within the frame
         </div>
       )}
-
-      <div className="flex gap-2">
-        {isScanning ? (
-          <Button onClick={stopScanning} variant="outline" className="w-full">
-            Stop Scanning
-          </Button>
-        ) : (
-          cameras.length > 0 &&
-          !error && (
-            <Button onClick={startScanning} className="w-full">
-              <Camera className="mr-2 h-4 w-4" />
-              Start Scanning
-            </Button>
-          )
-        )}
-      </div>
-    </Card>
+    </>
   );
 }

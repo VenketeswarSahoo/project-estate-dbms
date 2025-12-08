@@ -37,8 +37,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-
-import { BarcodeScanner } from "@/components/common/BarcodeScanner";
 import { ScanDialog } from "../common/ScanDialog";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -110,16 +108,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </Button>
             {/* Search */}
-            <div className="relative flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search items, users, messages..."
-                  className="pl-10 w-64 md:w-80"
-                />
+            <div className=" lg:block hidden">
+              <div className="relative flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search items, users, messages..."
+                    className="pl-10 w-64 md:w-80"
+                  />
+                </div>
+                <ScanDialog />
               </div>
-              <ScanDialog />
             </div>
           </div>
           {/* Right side */}
