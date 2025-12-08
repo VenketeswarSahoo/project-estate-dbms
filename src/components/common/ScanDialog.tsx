@@ -18,16 +18,22 @@ import { Card } from "@/components/ui/card";
 import { Camera, Search } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeScanner } from "@/components/common/barcode-scanner";
+import { useAppStore } from "@/store/store";
 
 export function ScanDialog() {
   const router = useRouter();
   const [manualInput, setManualInput] = useState("");
   const [open, setOpen] = useState(false);
 
+  const { items } = useAppStore();
+
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
     setOpen(false);
-    router.push(`/items/${decodedText}`);
+    const item = items.find(
+      (item) => Number(item.barcode) === Number(decodedText)
+    );
+    router.push(`/items/${item?.id}`);
   };
 
   const handleScanError = (error: string) => {
