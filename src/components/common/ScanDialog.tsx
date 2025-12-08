@@ -29,9 +29,15 @@ export function ScanDialog() {
 
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
+    console.log(decodedText);
     setOpen(false);
     const item = items.find((item) => item.barcode === decodedText);
-    router.push(`/dashboard/items/${item?.id}`);
+
+    if (item) {
+      router.push(`/dashboard/items/${item.id}`);
+    } else {
+      toast.error("Item not found with this barcode.");
+    }
   };
 
   const handleScanError = (error: string) => {
@@ -45,7 +51,8 @@ export function ScanDialog() {
       return;
     }
     setOpen(false);
-    router.push(`/items/${manualInput.trim()}`);
+    const item = items.find((item) => item.barcode === manualInput.trim());
+    router.push(`/dashboard/items/${item?.id}`);
   };
 
   return (
