@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "@/types";
+import { Separator } from "../ui/separator";
 
 interface ItemCommunicationLogProps {
   itemId: string;
@@ -72,8 +73,9 @@ export function ItemCommunicationLog({ itemId }: ItemCommunicationLogProps) {
       <CardHeader>
         <CardTitle>Communication Log</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 pr-4 h-[440px]">
+      <Separator />
+      <CardContent>
+        <ScrollArea className="flex-1 pr-4">
           {itemMessages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               No messages for this item.
@@ -115,6 +117,12 @@ export function ItemCommunicationLog({ itemId }: ItemCommunicationLogProps) {
             onChange={(e) => setContent(e.target.value)}
             placeholder="Type a message..."
             className="min-h-[80px]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
           />
           <div className="flex justify-end mt-4">
             <Button onClick={handleSendMessage}>Send</Button>
