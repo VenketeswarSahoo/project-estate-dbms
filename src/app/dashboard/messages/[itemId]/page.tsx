@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/store/store";
 import { useAuth } from "@/providers/auth";
 import { MessageThread } from "@/components/messages/MessageThread";
@@ -16,6 +16,7 @@ export default function MessageDetailPage() {
   const { messages, items, users, addMessage } = useAppStore();
   const { user } = useAuth();
   const [replyContent, setReplyContent] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   if (!user) return null;
 
@@ -43,6 +44,36 @@ export default function MessageDetailPage() {
 
   const replyReceiverId = lastIncomingMsg?.senderId;
 
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current) {
+      const scrollArea = scrollContainerRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (scrollArea) {
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+      } else {
+        // Fallback to the container itself
+        scrollContainerRef.current.scrollTop =
+          scrollContainerRef.current.scrollHeight;
+      }
+    }
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [threadMessages]);
+
+  // Also scroll to bottom when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleReply = () => {
     if (!replyContent.trim()) return;
     if (!replyReceiverId) {
@@ -63,12 +94,17 @@ export default function MessageDetailPage() {
     addMessage(newMessage);
     setReplyContent("");
     toast.success("Reply sent");
+
+    // Scroll to bottom after message is sent
+    setTimeout(scrollToBottom, 50);
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-background rounded-lg border overflow-hidden">
       <div className="flex-1 overflow-hidden relative">
+        {/* Pass ref using forwardRef pattern */}
         <MessageThread
+          ref={scrollContainerRef}
           item={item}
           messages={threadMessages}
           currentUser={user}
@@ -83,6 +119,14 @@ export default function MessageDetailPage() {
             placeholder={
               replyReceiverId ? "Type a reply..." : "Start a conversation..."
             }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (replyContent.trim() && replyReceiverId) {
+                  handleReply();
+                }
+              }
+            }}
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
             className="min-h-[60px] resize-none"
