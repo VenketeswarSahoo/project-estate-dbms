@@ -1,7 +1,6 @@
 "use client";
 
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
-import { CameraCapture } from "@/components/common/CameraCapture";
 import { ItemForm } from "@/components/forms/ItemForm";
 import { ItemCommunicationLog } from "@/components/messages/ItemCommunicationLog";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
-import { ArrowLeft, Trash2, Upload, X } from "lucide-react";
+import { ArrowLeft, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -120,52 +119,6 @@ export default function ItemDetailsPage() {
           <Card className="h-[298px]">
             <CardHeader className="flex flex-row pb-2">
               <CardTitle>Photos</CardTitle>
-              {canEdit && (
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        files.forEach((file) => {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            const base64 = reader.result as string;
-                          };
-                        });
-
-                        Promise.all(
-                          files.map((file) => {
-                            return new Promise<string>((resolve) => {
-                              const reader = new FileReader();
-                              reader.onloadend = () =>
-                                resolve(reader.result as string);
-                              reader.readAsDataURL(file);
-                            });
-                          })
-                        ).then((newPhotos) => {
-                          const updatedPhotos = [...item.photos, ...newPhotos];
-                          updateItem(itemId, { photos: updatedPhotos });
-                          toast.success(`${newPhotos.length} photo(s) added`);
-                        });
-                      }}
-                    />
-                    <Button variant="outline" size="icon">
-                      <Upload className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <CameraCapture
-                    onCapture={(src) => {
-                      const updatedPhotos = [...item.photos, src];
-                      updateItem(itemId, { photos: updatedPhotos });
-                      toast.success("Photo added");
-                    }}
-                  />
-                </div>
-              )}
             </CardHeader>
             <CardContent>
               {item.photos.length === 0 ? (

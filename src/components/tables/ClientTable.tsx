@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Client, User } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,10 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Client, User } from "@/types";
+import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit } from "lucide-react";
 import { Card } from "../ui/card";
 
 interface ClientTableProps {
@@ -52,11 +51,7 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
             </TableRow>
           ) : (
             clients.map((client) => (
-              <TableRow
-                key={client.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => router.push(`/dashboard/clients/${client.id}`)}
-              >
+              <TableRow key={client.id} className="hover:bg-muted/50">
                 <TableCell className="font-medium">{client.name}</TableCell>
                 <TableCell>{client.address}</TableCell>
                 <TableCell>

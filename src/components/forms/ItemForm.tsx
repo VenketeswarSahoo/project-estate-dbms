@@ -2,7 +2,6 @@
 
 import { CameraCapture } from "@/components/common/CameraCapture";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -54,6 +53,7 @@ interface ItemFormProps {
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import Image from "next/image";
+import { Checkbox } from "../ui/checkbox";
 
 export function ItemForm({
   initialData,
@@ -365,8 +365,30 @@ export function ItemForm({
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name="isLocked"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mb-8">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={effectiveReadOnly}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Lock Item</FormLabel>
+                <FormDescription>
+                  Prevent further edits to this item.
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+
         {/* Photos Section */}
-        <div className="space-y-4">
+        <div>
           <FormLabel>Photos</FormLabel>
           <div className="flex flex-wrap gap-4 items-center">
             {/* Hidden File Input */}
@@ -430,28 +452,6 @@ export function ItemForm({
             )}
           </div>
         </div>
-
-        <FormField
-          control={form.control}
-          name="isLocked"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={effectiveReadOnly}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Lock Item</FormLabel>
-                <FormDescription>
-                  Prevent further edits to this item.
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
 
         <div className="flex justify-end">
           {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
