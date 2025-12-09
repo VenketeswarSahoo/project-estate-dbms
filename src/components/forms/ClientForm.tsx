@@ -1,10 +1,5 @@
 "use client";
 
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Client, User } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,7 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { v4 as uuidv4 } from "uuid";
+import { Client, User } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const clientSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -66,7 +64,21 @@ export function ClientForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            const target = e.target as HTMLElement;
+            const tagName = target.tagName.toLowerCase();
+
+            if (tagName === "input" || tagName === "textarea") {
+              e.preventDefault();
+              form.handleSubmit(handleSubmit)();
+            }
+          }
+        }}
+        className="space-y-6"
+      >
         <FormField
           control={form.control}
           name="name"

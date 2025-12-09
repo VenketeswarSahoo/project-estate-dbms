@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
-import { Message, Item, Client, User } from "@/types";
-import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { Item, Message } from "@/types";
+import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage } from "../ui/avatar";
 
 interface MessageListProps {
   items: Item[];
@@ -56,13 +55,15 @@ export function MessageList({ items, messages }: MessageListProps) {
               thread!.hasUnread ? "bg-muted/20" : ""
             )}
           >
-            {/* Avatar / Status Indicator */}
             <div className="flex items-center gap-3 w-full sm:w-auto sm:min-w-[200px]">
-              {!thread!.hasUnread ? (
-                <div className="h-3 w-3 rounded-full bg-blue-500 shrink-0" />
-              ) : (
-                <div className="h-3 w-3 rounded-full border border-muted-foreground shrink-0" />
-              )}
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage
+                  src={
+                    "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg"
+                  }
+                  alt={"..."}
+                />
+              </Avatar>
               <div className="flex flex-col">
                 <span className="font-semibold text-sm truncate">
                   {thread!.item.name}

@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
-import { useAppStore } from "@/store/store";
-import { useAuth } from "@/providers/auth";
-import { ClientTable } from "@/components/clients/ClientTable";
+import { ClientTable } from "@/components/tables/ClientTable";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -32,7 +31,7 @@ export default function ClientsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Clients</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Clients</h2>
         <Button onClick={() => router.push("/dashboard/clients/new")}>
           <Plus className="mr-2 h-4 w-4" /> Add Client
         </Button>

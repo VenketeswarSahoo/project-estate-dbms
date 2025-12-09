@@ -1,20 +1,18 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2, X, Upload } from "lucide-react";
-import { useAppStore } from "@/store/store";
-import { useAuth } from "@/providers/auth";
-import { ItemForm } from "@/components/items/ItemForm";
-import { toast } from "sonner";
-import { CameraCapture } from "@/components/common/CameraCapture";
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
-import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
-import PageTransition from "@/components/layout/PageTransition";
+import { CameraCapture } from "@/components/common/CameraCapture";
+import { ItemForm } from "@/components/forms/ItemForm";
 import { ItemCommunicationLog } from "@/components/messages/ItemCommunicationLog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
+import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
+import { ArrowLeft, Trash2, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ItemDetailsPage() {
   const params = useParams();
@@ -57,7 +55,7 @@ export default function ItemDetailsPage() {
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Item Details</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Item Details</h2>
         </div>
         {canDelete && (
           <Button
@@ -178,10 +176,12 @@ export default function ItemDetailsPage() {
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {item.photos.map((photo, index) => (
                     <div key={index} className="relative group aspect-square">
-                      <img
+                      <Image
                         src={photo}
                         alt={`Item photo ${index + 1}`}
                         className="object-cover w-full h-full rounded-md border"
+                        width={100}
+                        height={100}
                       />
                       {canEdit && (
                         <Button

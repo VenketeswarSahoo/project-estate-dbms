@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
-import Webcam from "react-webcam";
 import { Button } from "@/components/ui/button";
-import { Camera, X, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +8,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Camera, Check, X } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useRef, useState } from "react";
+import Webcam from "react-webcam";
 
 interface CameraCaptureProps {
   onCapture: (imageSrc: string) => void;
@@ -54,7 +55,13 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
           {imgSrc ? (
-            <img src={imgSrc} alt="Captured" className="rounded-md w-full" />
+            <Image
+              src={imgSrc}
+              alt="Captured"
+              className="rounded-md w-full"
+              width={500}
+              height={500}
+            />
           ) : (
             <Webcam
               audio={false}

@@ -1,15 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { Item, Client } from "@/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,10 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Search, Filter, Plus } from "lucide-react";
-import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Client, Item } from "@/types";
+import { Filter, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface ItemTableProps {
   items: Item[];
@@ -33,9 +32,6 @@ interface ItemTableProps {
 import { useAuth } from "@/providers/auth";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { v4 as uuidv4 } from "uuid";
-import { useAppStore } from "@/store/store";
-import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -45,6 +41,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Settings2 } from "lucide-react";
+import Image from "next/image";
+import { toast } from "sonner";
 import { Card } from "../ui/card";
 
 export function ItemTable({
@@ -305,10 +303,12 @@ export function ItemTable({
                     {showPhotos && (
                       <TableCell>
                         {item.photos?.[0] ? (
-                          <img
+                          <Image
                             src={item.photos[0]}
                             alt=""
                             className="h-10 w-10 object-cover rounded"
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-xs">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,10 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User, Item } from "@/types";
-import { Plus, Search } from "lucide-react";
-import { useAppStore } from "@/store/store";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
+import { Item, User } from "@/types";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -178,6 +177,12 @@ export function ComposeMessageDialog({
               className="h-32"
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
             />
           </div>
         </div>

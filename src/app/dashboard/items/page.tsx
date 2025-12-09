@@ -1,11 +1,8 @@
 "use client";
 
-import React from "react";
-import { AppShell } from "@/components/layout/AppShell";
-import { ItemTable } from "@/components/items/ItemTable";
-import { useAppStore } from "@/store/store";
+import { ItemTable } from "@/components/tables/ItemTable";
 import { useAuth } from "@/providers/auth";
-import PageTransition from "@/components/layout/PageTransition";
+import { useAppStore } from "@/store/store";
 
 export default function ItemsPage() {
   const { items, clients, deleteItem } = useAppStore();
@@ -41,7 +38,7 @@ export default function ItemsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Estate Items</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Estate Items</h2>
       </div>
       <ItemTable
         items={visibleItems}

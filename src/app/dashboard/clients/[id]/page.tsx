@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useAppStore } from "@/store/store";
-import { useAuth } from "@/providers/auth";
-import { ClientForm } from "@/components/clients/ClientForm";
-import { useRouter, useParams } from "next/navigation";
-import { toast } from "sonner";
+import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
 import { Client } from "@/types";
+import { ArrowLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function EditClientPage() {
   const { clients, updateClient, users } = useAppStore();
@@ -44,7 +44,7 @@ export default function EditClientPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
           </Button>
 
-          <h2 className="text-3xl font-bold tracking-tight">Edit Client</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Edit Client</h2>
         </div>
         <p className="text-muted-foreground">Update client details.</p>
       </div>

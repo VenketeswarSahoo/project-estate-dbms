@@ -1,27 +1,18 @@
 "use client";
 
-import React from "react";
-import { usePathname } from "next/navigation";
-import { useAuth } from "@/providers/auth";
-import { useAppSidebar } from "@/hooks/use-app-sidebar";
-import {
-  LayoutDashboard,
-  Package,
-  Users,
-  Settings,
-  MessageSquare,
-  Building,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  LogOut,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/providers/auth";
+import {
+  Building,
+  LayoutDashboard,
+  MessageSquare,
+  Package,
+  Settings,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { CustomTooltip } from "../ui/custom-sidebar-tooltip";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip } from "../ui/tooltip";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -30,8 +21,7 @@ interface SidebarProps {
 
 export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const { toggleDesktop } = useAppSidebar();
+  const { user } = useAuth();
 
   if (!user) return null;
 

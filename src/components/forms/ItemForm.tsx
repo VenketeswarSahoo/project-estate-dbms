@@ -1,13 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Item, Client } from "@/types";
-import { Button } from "@/components/ui/button";
 import { CameraCapture } from "@/components/common/CameraCapture";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -18,7 +13,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -26,8 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { v4 as uuidv4 } from "uuid";
+import { Textarea } from "@/components/ui/textarea";
+import { Client, Item } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Image as ImageIcon, Upload, X } from "lucide-react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const itemSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -52,8 +51,8 @@ interface ItemFormProps {
   isReadOnly?: boolean;
 }
 
-import { useAppStore } from "@/store/store";
 import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
 import Image from "next/image";
 
 export function ItemForm({
@@ -154,7 +153,24 @@ export function ItemForm({
           </Button>
         </div>
       )}
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            if (e.target instanceof HTMLTextAreaElement) {
+              e.preventDefault();
+              form.handleSubmit(handleSubmit)();
+            } else if (
+              e.target instanceof HTMLInputElement &&
+              e.target.type !== "file"
+            ) {
+              e.preventDefault();
+              form.handleSubmit(handleSubmit)();
+            }
+          }
+        }}
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-8"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}

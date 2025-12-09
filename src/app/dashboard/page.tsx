@@ -1,15 +1,12 @@
 "use client";
 
-import React from "react";
-import { useAuth } from "@/providers/auth";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { FloatingScanButton } from "@/components/common/FloatingScanButton";
 import { RecentItemsList } from "@/components/dashboard/RecentItemsList";
 import { RecentMessagesList } from "@/components/dashboard/RecentMessagesList";
 import { ChartBarDefault } from "@/components/dashboard/chat-area-interactive";
-import { ChartLineDefault } from "@/components/dashboard/chat-line-default";
 import { ChartPieDonutText } from "@/components/dashboard/chat-pie-donut-text";
 import { SectionCards } from "@/components/dashboard/section-cards";
-import { FloatingScanButton } from "@/components/common/FloatingScanButton";
+import { useAuth } from "@/providers/auth";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -19,7 +16,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
       </div>
       <SectionCards />
 

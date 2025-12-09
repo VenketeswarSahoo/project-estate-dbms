@@ -1,14 +1,12 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { useAppStore } from "@/store/store";
-import { useAuth } from "@/providers/auth";
-import { AppShell } from "@/components/layout/AppShell";
-import { ItemForm } from "@/components/items/ItemForm";
+import { ItemForm } from "@/components/forms/ItemForm";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/store";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -40,7 +38,7 @@ export default function NewItemPage() {
         <Button variant="outline" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">New Item</h2>
+        <h2 className="text-2xl font-bold tracking-tight">New Item</h2>
       </div>
 
       <Card>
