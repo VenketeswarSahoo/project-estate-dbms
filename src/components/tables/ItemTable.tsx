@@ -466,26 +466,43 @@ export function ItemTable({
                           )}
                         </TableCell>
                         <TableCell className="text-center flex items-center gap-2 justify-center">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/dashboard/items/${item.id}`);
-                            }}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/dashboard/items/${item.id}`);
-                            }}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                          {(user?.role === "ADMIN" ||
+                            user?.role === "AGENT") && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(`/dashboard/items/${item.id}`);
+                                  }}
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit Item</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/dashboard/items/${item.id}`);
+                                }}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete Item</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
