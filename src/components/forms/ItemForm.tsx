@@ -53,6 +53,7 @@ interface ItemFormProps {
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import Image from "next/image";
+import { GalleryModal } from "../slider/gallery-modal";
 import { Checkbox } from "../ui/checkbox";
 
 export function ItemForm({
@@ -65,6 +66,9 @@ export function ItemForm({
   const { addClientBeneficiary, addClientDonationRecipient, addClientAction } =
     useAppStore();
   const [isUnlocked, setIsUnlocked] = React.useState(false);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [galleryOpen, setGalleryOpen] = React.useState(false);
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,323 +144,336 @@ export function ItemForm({
     }
   }, [initialData, form]);
 
+  const openGallery = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setGalleryOpen(true);
+    setCurrentIndex(index);
+  };
+
   return (
-    <Form {...form}>
-      {isReadOnly && !isUnlocked && canUnlock && (
-        <div className="flex justify-end mb-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsUnlocked(true)}
-          >
-            Unlock for Edit
-          </Button>
-        </div>
-      )}
-      <form
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            if (e.target instanceof HTMLTextAreaElement) {
-              e.preventDefault();
-              form.handleSubmit(handleSubmit)();
-            } else if (
-              e.target instanceof HTMLInputElement &&
-              e.target.type !== "file"
-            ) {
-              e.preventDefault();
-              form.handleSubmit(handleSubmit)();
+    <>
+      <Form {...form}>
+        {isReadOnly && !isUnlocked && canUnlock && (
+          <div className="flex justify-end mb-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsUnlocked(true)}
+            >
+              Unlock for Edit
+            </Button>
+          </div>
+        )}
+        <form
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              if (e.target instanceof HTMLTextAreaElement) {
+                e.preventDefault();
+                form.handleSubmit(handleSubmit)();
+              } else if (
+                e.target instanceof HTMLInputElement &&
+                e.target.type !== "file"
+              ) {
+                e.preventDefault();
+                form.handleSubmit(handleSubmit)();
+              }
             }
-          }
-        }}
-        onSubmit={form.handleSubmit(handleSubmit)}
-        className="space-y-8"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Item Name"
-                    {...field}
-                    readOnly={effectiveReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="clientId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Client</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={effectiveReadOnly}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Item description..."
-                  className="h-24 resize-none "
-                  {...field}
-                  readOnly={effectiveReadOnly}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FormField
-            control={form.control}
-            name="pieces"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Number of Pieces</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    readOnly={effectiveReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="action"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Action</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={effectiveReadOnly}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select action" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="SALE">Sale</SelectItem>
-                    <SelectItem value="DISTRIBUTE">Distribute</SelectItem>
-                    <SelectItem value="DONATE">Donate</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="actionNote"
-            render={({ field }) => {
-              const action = form.watch("action");
-              const clientId = form.watch("clientId");
-              const currentClient = clients.find((c) => c.id === clientId);
-
-              const showBeneficiarySelect = action === "DISTRIBUTE" && clientId;
-              const showDonationSelect = action === "DONATE" && clientId;
-              const showCustomActionSelect = action === "OTHER" && clientId;
-
-              return (
+          }}
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    {action === "DISTRIBUTE"
-                      ? "Beneficiary Name"
-                      : action === "DONATE"
-                      ? "Donation Recipient"
-                      : action === "OTHER"
-                      ? "Custom Action"
-                      : "Action Note"}
-                  </FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    {showBeneficiarySelect ? (
-                      <div className="relative">
-                        <Input
-                          list="saved-beneficiaries"
-                          placeholder="Type or select Beneficiary..."
-                          {...field}
-                          readOnly={effectiveReadOnly}
-                        />
-                        <datalist id="saved-beneficiaries">
-                          {currentClient?.savedBeneficiaries?.map((name) => (
-                            <option key={name} value={name} />
-                          ))}
-                        </datalist>
-                      </div>
-                    ) : showDonationSelect ? (
-                      <div className="relative">
-                        <Input
-                          list="saved-donations"
-                          placeholder="Type or select Recipient..."
-                          {...field}
-                          readOnly={effectiveReadOnly}
-                        />
-                        <datalist id="saved-donations">
-                          {currentClient?.savedDonationRecipients?.map(
-                            (name) => (
-                              <option key={name} value={name} />
-                            )
-                          )}
-                        </datalist>
-                      </div>
-                    ) : showCustomActionSelect ? (
-                      <div className="relative">
-                        <Input
-                          list="saved-actions"
-                          placeholder="Type or select Action..."
-                          {...field}
-                          readOnly={effectiveReadOnly}
-                        />
-                        <datalist id="saved-actions">
-                          {currentClient?.savedActions?.map((act) => (
-                            <option key={act} value={act} />
-                          ))}
-                        </datalist>
-                      </div>
-                    ) : (
-                      <Input
-                        placeholder="Details..."
-                        {...field}
-                        readOnly={effectiveReadOnly}
-                      />
-                    )}
+                    <Input
+                      placeholder="Item Name"
+                      {...field}
+                      readOnly={effectiveReadOnly}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              );
-            }}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="isLocked"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mb-8">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={effectiveReadOnly}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Lock Item</FormLabel>
-                <FormDescription>
-                  Prevent further edits to this item.
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-
-        {/* Photos Section */}
-        <div>
-          <FormLabel>Photos</FormLabel>
-          <div className="flex flex-wrap gap-4 items-center">
-            {/* Hidden File Input */}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handlePhotoUpload}
-              disabled={effectiveReadOnly}
+              )}
             />
-
-            {!effectiveReadOnly && (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-xs"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Photos
-                </Button>
-                <CameraCapture onCapture={handleCameraCapture} />
-              </>
+            <FormField
+              control={form.control}
+              name="clientId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={effectiveReadOnly}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Item description..."
+                    className="h-24 resize-none "
+                    {...field}
+                    readOnly={effectiveReadOnly}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField
+              control={form.control}
+              name="pieces"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Pieces</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      readOnly={effectiveReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="action"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Action</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={effectiveReadOnly}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select action" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="SALE">Sale</SelectItem>
+                      <SelectItem value="DISTRIBUTE">Distribute</SelectItem>
+                      <SelectItem value="DONATE">Donate</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="actionNote"
+              render={({ field }) => {
+                const action = form.watch("action");
+                const clientId = form.watch("clientId");
+                const currentClient = clients.find((c) => c.id === clientId);
+
+                const showBeneficiarySelect =
+                  action === "DISTRIBUTE" && clientId;
+                const showDonationSelect = action === "DONATE" && clientId;
+                const showCustomActionSelect = action === "OTHER" && clientId;
+
+                return (
+                  <FormItem>
+                    <FormLabel>
+                      {action === "DISTRIBUTE"
+                        ? "Beneficiary Name"
+                        : action === "DONATE"
+                        ? "Donation Recipient"
+                        : action === "OTHER"
+                        ? "Custom Action"
+                        : "Action Note"}
+                    </FormLabel>
+                    <FormControl>
+                      {showBeneficiarySelect ? (
+                        <div className="relative">
+                          <Input
+                            list="saved-beneficiaries"
+                            placeholder="Type or select Beneficiary..."
+                            {...field}
+                            readOnly={effectiveReadOnly}
+                          />
+                        </div>
+                      ) : showDonationSelect ? (
+                        <div className="relative">
+                          <Input
+                            list="saved-donations"
+                            placeholder="Type or select Recipient..."
+                            {...field}
+                            readOnly={effectiveReadOnly}
+                          />
+                          <datalist id="saved-donations">
+                            {currentClient?.savedDonationRecipients?.map(
+                              (name) => (
+                                <option key={name} value={name} />
+                              )
+                            )}
+                          </datalist>
+                        </div>
+                      ) : showCustomActionSelect ? (
+                        <div className="relative">
+                          <Input
+                            list="saved-actions"
+                            placeholder="Type or select Action..."
+                            {...field}
+                            readOnly={effectiveReadOnly}
+                          />
+                          <datalist id="saved-actions">
+                            {currentClient?.savedActions?.map((act) => (
+                              <option key={act} value={act} />
+                            ))}
+                          </datalist>
+                        </div>
+                      ) : (
+                        <Input
+                          placeholder="Details..."
+                          {...field}
+                          readOnly={effectiveReadOnly}
+                        />
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            {form.watch("photos")?.map((photo, index) => (
-              <div
-                key={index}
-                className="relative group aspect-square rounded-md overflow-hidden border"
-              >
-                <Image
-                  src={photo}
-                  alt={`Item photo ${index + 1}`}
-                  className="object-cover w-full h-full"
-                  width={200}
-                  height={200}
-                />
-                {!effectiveReadOnly && (
+          <FormField
+            control={form.control}
+            name="isLocked"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mb-8">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={effectiveReadOnly}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Lock Item</FormLabel>
+                  <FormDescription>
+                    Prevent further edits to this item.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Photos Section */}
+          <div className="space-y-4">
+            <FormLabel>Photos</FormLabel>
+            <div className="flex flex-wrap gap-4 items-center">
+              {/* Hidden File Input */}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                disabled={effectiveReadOnly}
+              />
+
+              {!effectiveReadOnly && (
+                <>
                   <Button
                     type="button"
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => removePhoto(index)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <X className="h-4 w-4" />
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Photos
                   </Button>
-                )}
-              </div>
-            ))}
-            {(!form.watch("photos") || form.watch("photos")?.length === 0) && (
-              <div className="col-span-2 md:col-span-4 flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-md text-muted-foreground">
-                <ImageIcon className="h-8 w-8 mb-2" />
-                <p>No photos added yet</p>
-              </div>
-            )}
-          </div>
-        </div>
+                  <CameraCapture onCapture={handleCameraCapture} />
+                </>
+              )}
+            </div>
 
-        <div className="flex justify-end">
-          {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
-        </div>
-      </form>
-    </Form>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              {form.watch("photos")?.map((photo, index) => (
+                <div
+                  key={index}
+                  className="relative group aspect-square rounded-md overflow-hidden border"
+                >
+                  <Image
+                    src={photo}
+                    alt={`Item photo ${index + 1}`}
+                    className="object-cover w-full h-full"
+                    width={200}
+                    height={200}
+                    onClick={(e) => openGallery(e, index)}
+                  />
+                  {!effectiveReadOnly && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => removePhoto(index)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {(!form.watch("photos") ||
+                form.watch("photos")?.length === 0) && (
+                <div className="col-span-2 md:col-span-4 flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-md text-muted-foreground">
+                  <ImageIcon className="h-8 w-8 mb-2" />
+                  <p>No photos added yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
+          </div>
+        </form>
+      </Form>
+      <GalleryModal
+        images={form.watch("photos") || []}
+        title={form.watch("name")}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={currentIndex}
+      />
+    </>
   );
 }

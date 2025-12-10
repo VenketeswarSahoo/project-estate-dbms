@@ -11,7 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Client, User } from "@/types";
-import { Edit, Trash2 } from "lucide-react";
+import {
+  MapPin,
+  Pencil,
+  User as Person,
+  Settings,
+  Trash2,
+  Type,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "../ui/card";
 
@@ -33,10 +40,30 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Address</TableHead>
-            <TableHead>Executor</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>
+              <div className="flex items-center font-bold">
+                <Type className="mr-2 h-4 w-4" />
+                Name
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center font-bold">
+                <MapPin className="mr-2 h-4 w-4" />
+                Address
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center font-bold">
+                <Person className="mr-2 h-4 w-4" />
+                Executor
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex items-center justify-center font-bold">
+                <Settings className="mr-2 h-4 w-4" />
+                Action
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -59,22 +86,22 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
                     {getUserName(client.executorId)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell>
                   <div
-                    className="flex justify-end gap-2"
+                    className="flex justify-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
                       onClick={() =>
                         router.push(`/dashboard/clients/${client.id}`)
                       }
                     >
-                      <Edit className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
                       className="text-destructive hover:text-destructive"
                       onClick={() => onDelete(client.id)}

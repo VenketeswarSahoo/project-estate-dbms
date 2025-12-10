@@ -3,6 +3,7 @@
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
 import { ItemForm } from "@/components/forms/ItemForm";
 import { ItemCommunicationLog } from "@/components/messages/ItemCommunicationLog";
+import { GalleryModal } from "@/components/slider/gallery-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
@@ -11,6 +12,7 @@ import { useAppStore } from "@/store/store";
 import { ArrowLeft, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function ItemDetailsPage() {
@@ -18,6 +20,9 @@ export default function ItemDetailsPage() {
   const router = useRouter();
   const { items, clients, updateItem, deleteItem } = useAppStore();
   const { user } = useAuth();
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const itemId = params.id as string;
   const item = items.find((i) => i.id === itemId);
@@ -47,6 +52,12 @@ export default function ItemDetailsPage() {
     }
   };
 
+  const openGallery = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setGalleryOpen(true);
+    setCurrentIndex(index);
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
@@ -54,7 +65,9 @@ export default function ItemDetailsPage() {
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-2xl font-bold tracking-tight">Item Details</h2>
+          <h2 className="lg:text-2xl text-xl font-bold tracking-tight">
+            Item Details
+          </h2>
         </div>
         {canDelete && (
           <Button
@@ -116,7 +129,7 @@ export default function ItemDetailsPage() {
             </CardContent>
           </Card>
 
-          <Card className="h-[298px]">
+          <Card className="min-h-[298px]">
             <CardHeader className="flex flex-row pb-2">
               <CardTitle>Photos</CardTitle>
             </CardHeader>
@@ -135,6 +148,7 @@ export default function ItemDetailsPage() {
                         className="object-cover w-full h-full rounded-md border"
                         width={100}
                         height={100}
+                        onClick={(e) => openGallery(e, index)}
                       />
                       {canEdit && (
                         <Button
@@ -161,6 +175,13 @@ export default function ItemDetailsPage() {
         </div>
       </div>
       <ItemCommunicationLog itemId={itemId} />
+      <GalleryModal
+        images={item.photos}
+        title={item.name}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={currentIndex}
+      />
     </div>
   );
 }

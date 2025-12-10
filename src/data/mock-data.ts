@@ -1,4 +1,4 @@
-import { User, Client, Item, Message } from "@/types";
+import { Client, Item, Message, User } from "@/types";
 
 export const MOCK_USERS: User[] = [
   {
@@ -113,7 +113,11 @@ const generateItems = (): Item[] => {
       name: "Antique Vase",
       description:
         "Ming Dynasty blue and white porcelain vase, slight chip on rim.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100001",
       uid: "VAS-001",
       isLocked: true,
@@ -127,7 +131,10 @@ const generateItems = (): Item[] => {
       clientId: "client-1",
       name: "Grand Piano",
       description: "Steinway & Sons Model B. Needs tuning.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1601760562234-9814eea6663a?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100002",
       uid: "PIA-002",
       isLocked: false,
@@ -142,7 +149,10 @@ const generateItems = (): Item[] => {
       clientId: "client-1",
       name: "Oak Dining Set",
       description: "Large oak table with 8 chairs.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1600992045264-136a22de917e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://plus.unsplash.com/premium_photo-1684445034834-c8dec93ed218?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100003",
       uid: "FUR-003",
       isLocked: false,
@@ -157,7 +167,11 @@ const generateItems = (): Item[] => {
       clientId: "client-1",
       name: "Silver Cutlery",
       description: "Complete set of sterling silver cutlery for 12.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1601760561441-16420502c7e0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100004",
       uid: "KIT-004",
       isLocked: true,
@@ -172,7 +186,11 @@ const generateItems = (): Item[] => {
       clientId: "client-2",
       name: "Bat Suit (Prototype)",
       description: "Early prototype, kevlar weave. Collecting dust.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "200001",
       uid: "SUIT-001",
       isLocked: true,
@@ -187,7 +205,11 @@ const generateItems = (): Item[] => {
       clientId: "client-2",
       name: "Vintage Sports Car",
       description: "1960s classic, black.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1601760561441-16420502c7e0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "200002",
       uid: "CAR-002",
       isLocked: false,
@@ -201,7 +223,10 @@ const generateItems = (): Item[] => {
       clientId: "client-2",
       name: "Library Collection",
       description: "Assorted first editions.",
-      photos: [],
+      photos: [
+        "https://plus.unsplash.com/premium_photo-1684445034834-c8dec93ed218?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "https://images.unsplash.com/photo-1600992045264-136a22de917e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "200003",
       uid: "BKS-003",
       isLocked: false,
@@ -216,7 +241,9 @@ const generateItems = (): Item[] => {
       clientId: "client-1",
       name: "Persian Rug",
       description: "8x10 silk rug, minor wear.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100005",
       uid: "RUG-005",
       isLocked: false,
@@ -230,7 +257,9 @@ const generateItems = (): Item[] => {
       clientId: "client-3",
       name: "Holographic Display",
       description: "Prototype 3D display table.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?q=80&w=1167&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "300001",
       uid: "TECH-001",
       isLocked: false,
@@ -240,13 +269,14 @@ const generateItems = (): Item[] => {
       createdAt: new Date("2024-03-15").toISOString(),
       updatedAt: new Date("2024-03-15").toISOString(),
     },
-    // New Items for Client 3 (Stark)
     {
       id: "item-10",
       clientId: "client-3",
       name: "Iron Man Mark I",
       description: "Original scrap metal suit from the cave.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "300002",
       uid: "ARMOR-001",
       isLocked: true,
@@ -261,7 +291,9 @@ const generateItems = (): Item[] => {
       clientId: "client-3",
       name: "Arc Reactor Prototype",
       description: "Proof that Tony Stark has a heart.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1464146072230-91cabc968266?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "300003",
       uid: "TECH-002",
       isLocked: false,
@@ -275,7 +307,9 @@ const generateItems = (): Item[] => {
       clientId: "client-3",
       name: "Stark Expo Model 1974",
       description: "Architectural model of the Stark Expo.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "300004",
       uid: "MODEL-001",
       isLocked: false,
@@ -285,13 +319,14 @@ const generateItems = (): Item[] => {
       createdAt: new Date("2024-03-17").toISOString(),
       updatedAt: new Date("2024-03-17").toISOString(),
     },
-    // More Items for Client 2 (Wayne)
     {
       id: "item-13",
       clientId: "client-2",
       name: "Batarang Collection",
       description: "Assorted batarangs, some used.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "200004",
       uid: "WEAP-001",
       isLocked: false,
@@ -306,7 +341,9 @@ const generateItems = (): Item[] => {
       clientId: "client-2",
       name: "Wayne Enterprises Stocks",
       description: "Physical stock certificates.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "200005",
       uid: "DOC-001",
       isLocked: true,
@@ -315,13 +352,14 @@ const generateItems = (): Item[] => {
       createdAt: new Date("2024-02-11").toISOString(),
       updatedAt: new Date("2024-02-11").toISOString(),
     },
-    // More Items for Client 1 (Smith)
     {
       id: "item-15",
       clientId: "client-1",
       name: "Garden Tools",
       description: "Rakes, shovels, and hoes. Rusty.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100006",
       uid: "GARD-001",
       isLocked: false,
@@ -336,7 +374,9 @@ const generateItems = (): Item[] => {
       clientId: "client-1",
       name: "Old Paintings",
       description: "Various landscapes by unknown artists.",
-      photos: [],
+      photos: [
+        "https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      ],
       barcode: "100007",
       uid: "ART-002",
       isLocked: false,
