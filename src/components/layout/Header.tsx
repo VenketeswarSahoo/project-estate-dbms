@@ -3,16 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useAppSidebar } from "@/hooks/use-app-sidebar";
 import { useAuth } from "@/providers/auth";
-import {
-  Bell,
-  HelpCircle,
-  LogOut,
-  Menu,
-  Moon,
-  Search,
-  Sun,
-  X,
-} from "lucide-react";
+import { LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ScanDialog } from "../common/ScanDialog";
 import {
@@ -70,28 +61,6 @@ const Header = () => {
       </div>
       {/* Right side */}
       <div className="flex items-center">
-        <Button variant="ghost" size="icon" className="relative">
-          <HelpCircle className="h-5 w-5" />
-        </Button>
-        <Button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          variant="ghost"
-          size="icon"
-          className="relative"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
-        <Button variant="ghost" size="icon" className="relative mr-2">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
-            3
-          </span>
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -114,8 +83,22 @@ const Header = () => {
                 </p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? (
+                <div className="flex items-center">
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light Mode</span>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark Mode</span>
+                </div>
+              )}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-
             <DropdownMenuItem
               onClick={logout}
               className="text-red-600 focus:text-red-600"

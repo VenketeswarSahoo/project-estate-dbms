@@ -72,15 +72,12 @@ export function GalleryModal({
       <div className="flex items-center justify-between p-4 sm:p-6 text-white bg-black/80 backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h2 className="text-lg sm:text-xl font-semibold truncate">{title}</h2>
-          <div className="text-sm sm:text-base text-gray-300">
-            Image {currentIndex + 1} of {images.length}
-          </div>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="text-white hover:bg-white/20 hover:text-white/80 rounded-full h-10 w-10 sm:h-12 sm:w-12"
+          className="hover:bg-white/10 hover:text-white"
         >
           <X className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
@@ -92,7 +89,7 @@ export function GalleryModal({
         {images.length > 1 && (
           <button
             onClick={goToPrevious}
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full z-10"
+            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-white/10 text-white p-3 rounded-full z-10 border"
             aria-label="Previous image"
           >
             <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
@@ -115,7 +112,7 @@ export function GalleryModal({
         {images.length > 1 && (
           <button
             onClick={goToNext}
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full z-10"
+            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-white/10 text-white p-3 rounded-full z-10 border"
             aria-label="Next image"
           >
             <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />

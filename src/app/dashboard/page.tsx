@@ -3,7 +3,7 @@
 import { FloatingScanButton } from "@/components/common/FloatingScanButton";
 import { RecentItemsList } from "@/components/dashboard/RecentItemsList";
 import { RecentMessagesList } from "@/components/dashboard/RecentMessagesList";
-import { ChartBarDefault } from "@/components/dashboard/chat-area-interactive";
+import { ChartAreaGradient } from "@/components/dashboard/chat-line-multiple";
 import { ChartPieDonutText } from "@/components/dashboard/chat-pie-donut-text";
 import { SectionCards } from "@/components/dashboard/section-cards";
 import { useAuth } from "@/providers/auth";
@@ -21,7 +21,7 @@ export default function DashboardPage() {
       <SectionCards />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartBarDefault />
+        <ChartAreaGradient />
         <ChartPieDonutText />
         <RecentMessagesList />
         <RecentItemsList />

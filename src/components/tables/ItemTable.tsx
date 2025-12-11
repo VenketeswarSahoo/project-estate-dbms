@@ -33,6 +33,7 @@ import {
   Plus,
   Search,
   Settings,
+  Trash,
   Type,
   UserRound,
 } from "lucide-react";
@@ -478,7 +479,7 @@ export function ItemTable({
                                     router.push(`/dashboard/items/${item.id}`);
                                   }}
                                 >
-                                  <Pencil className="w-4 h-4" />
+                                  <Pencil className="w-4 h-4 text-green-700" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -496,7 +497,23 @@ export function ItemTable({
                                   router.push(`/dashboard/items/${item.id}`);
                                 }}
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-4 h-4 text-blue-600" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View Item</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={(e) => {
+                                  onDelete?.(item.id);
+                                }}
+                              >
+                                <Trash className="w-4 h-4 text-destructive" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

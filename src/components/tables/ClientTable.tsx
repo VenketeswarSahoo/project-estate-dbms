@@ -101,7 +101,7 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
                             router.push(`/dashboard/clients/${client.id}`)
                           }
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-4 w-4 text-green-700" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -115,7 +115,7 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
                           size="icon"
                           onClick={() => onDelete(client.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
