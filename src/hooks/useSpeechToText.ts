@@ -54,6 +54,8 @@ export const useSpeechToText = ({
 }: UseSpeechToTextOptions = {}) => {
   const [isListening, setIsListening] = useState(false);
   const [interimResult, setInterimResult] = useState("");
+  const [isSupported, setIsSupported] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isRestartingRef = useRef(false);
@@ -71,6 +73,7 @@ export const useSpeechToText = ({
 
     if (!SpeechRecognition) {
       console.warn("SpeechRecognition not supported in this browser.");
+      setIsSupported(false);
       return;
     }
 
@@ -102,9 +105,10 @@ export const useSpeechToText = ({
         try {
           recognition.start();
           setIsListening(true);
-        } catch (e) {
+        } catch (e: any) {
           console.error("Failed to restart speech recognition", e);
           setIsListening(false);
+          setError(e.message || "Failed to restart");
         }
       } else {
         setIsListening(false);
@@ -113,8 +117,11 @@ export const useSpeechToText = ({
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error !== "aborted") {
+      // "no-speech" is common effectively means silence, often we can ignore or simply not treat as fatal
+      // "aborted" happens on stop
+      if (event.error !== "aborted" && event.error !== "no-speech") {
         console.error("Speech recognition error", event.error);
+        setError(event.error);
         setIsListening(false);
       }
     };
@@ -129,15 +136,21 @@ export const useSpeechToText = ({
   }, [language]); // onFinal is removed from dependencies
 
   const startListening = useCallback(() => {
+    if (!isSupported) {
+      setError("Speech recognition is not supported in this browser.");
+      return;
+    }
     if (!recognitionRef.current) return;
     try {
+      setError(null);
       setInterimResult("");
       recognitionRef.current.start();
       setIsListening(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to start speech recognition:", error);
+      setError(error.message || "Failed to start");
     }
-  }, []);
+  }, [isSupported]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
@@ -157,5 +170,7 @@ export const useSpeechToText = ({
     startListening,
     stopListening,
     resetSpeechContext,
+    isSupported,
+    error,
   };
 };

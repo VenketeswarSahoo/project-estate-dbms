@@ -42,6 +42,8 @@ export default function MessageDetailPage() {
     startListening,
     stopListening,
     resetSpeechContext,
+    isSupported,
+    error,
   } = useSpeechToText({
     language: "en-US",
     onFinal: (text) => {
@@ -60,6 +62,12 @@ export default function MessageDetailPage() {
       // We might need to restore cursor.
     },
   });
+
+  useEffect(() => {
+    if (error) {
+      toast.error(`Speech Error: ${error}`);
+    }
+  }, [error]);
 
   // Effect to restore cursor position after programmatic update
   useEffect(() => {
@@ -81,12 +89,16 @@ export default function MessageDetailPage() {
     const handleShortcut = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "m") {
         e.preventDefault();
+        if (!isSupported) {
+          toast.error("Speech recognition is not supported in this browser.");
+          return;
+        }
         isListening ? stopListening() : startListening();
       }
     };
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, [isListening, startListening, stopListening]);
+  }, [isListening, startListening, stopListening, isSupported]);
 
   if (!user) return null;
 
@@ -221,14 +233,27 @@ export default function MessageDetailPage() {
             <button
               type="button"
               onClick={() => {
+                if (!isSupported) {
+                  toast.error(
+                    "Speech recognition is not supported in this browser."
+                  );
+                  return;
+                }
                 if (isListening) stopListening();
                 else startListening();
               }}
               className={`absolute right-2 bottom-2 p-2 rounded-full transition ${
-                isListening
+                !isSupported
+                  ? "text-gray-300 cursor-not-allowed"
+                  : isListening
                   ? "bg-red-500 text-white animate-pulse"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              title={
+                !isSupported
+                  ? "Speech recognition not supported"
+                  : "Voice input"
+              }
             >
               {isListening ? (
                 <MicOff className="h-4 w-4" />
