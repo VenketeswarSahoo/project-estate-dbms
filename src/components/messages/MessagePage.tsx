@@ -92,8 +92,12 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      <Card className="flex-1">
-        <MessageList items={filteredItems} messages={myMessages} />
+      <Card className="flex-1 p-0 overflow-hidden">
+        <MessageList
+          items={filteredItems}
+          messages={myMessages}
+          users={users}
+        />
       </Card>
 
       <ComposeMessageDialog users={users} items={items} />

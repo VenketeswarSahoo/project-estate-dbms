@@ -507,22 +507,24 @@ export function ItemTable({
                               <p>View Item</p>
                             </TooltipContent>
                           </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={(e) => {
-                                  onDelete?.(item.id);
-                                }}
-                              >
-                                <Trash className="w-4 h-4 text-destructive" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Delete Item</p>
-                            </TooltipContent>
-                          </Tooltip>
+                          {user?.role === "ADMIN" && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    onDelete?.(item.id);
+                                  }}
+                                >
+                                  <Trash className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete Item</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

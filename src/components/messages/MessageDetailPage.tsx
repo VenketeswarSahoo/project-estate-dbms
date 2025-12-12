@@ -6,13 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import { Send } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 export default function MessageDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const targetUserId = searchParams.get("userId");
+
   const { messages, items, users, addMessage } = useAppStore();
   const { user } = useAuth();
   const [replyContent, setReplyContent] = useState("");
@@ -28,14 +31,18 @@ export default function MessageDetailPage() {
     return <div>Item not found</div>;
   }
 
-  // Filter messages for current user and item
+  // Filter messages for current user and item, optionally filtering by specific interlocutor
   const threadMessages = messages.filter(
     (m) =>
       (m.senderId === user.id || m.receiverId === user.id) &&
-      m.itemId === itemId
+      m.itemId === itemId &&
+      (!targetUserId ||
+        m.senderId === targetUserId ||
+        m.receiverId === targetUserId)
   );
 
-  // Determine receiver for reply (Logic: Last person who isn't me)
+  // Determine receiver for reply
+  // 1. Try to find the last person who messaged ME (sender !== user.id)
   const lastIncomingMsg = [...threadMessages]
     .sort(
       (a, b) =>
@@ -43,7 +50,17 @@ export default function MessageDetailPage() {
     )
     .find((m) => m.senderId !== user.id);
 
-  const replyReceiverId = lastIncomingMsg?.senderId;
+  // 2. If no incoming messages, try to find the last person I messaged (receiver !== user.id)
+  // This handles the case where I started the thread and am sending another message
+  const lastOutgoingMsg = [...threadMessages]
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
+    .find((m) => m.senderId === user.id);
+
+  const replyReceiverId =
+    lastIncomingMsg?.senderId || lastOutgoingMsg?.receiverId;
 
   // Function to scroll to bottom
   const scrollToBottom = () => {

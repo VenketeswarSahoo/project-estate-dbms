@@ -2,7 +2,6 @@
 
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
 import { ItemForm } from "@/components/forms/ItemForm";
-import { ItemCommunicationLog } from "@/components/messages/ItemCommunicationLog";
 import { GalleryModal } from "@/components/slider/gallery-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,7 +173,7 @@ export default function ItemDetailsPage() {
           </Card>
         </div>
       </div>
-      <ItemCommunicationLog itemId={itemId} />
+      {/* <ItemCommunicationLog itemId={itemId} /> */}
       <GalleryModal
         images={item.photos}
         title={item.name}

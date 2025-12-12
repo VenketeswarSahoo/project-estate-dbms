@@ -43,7 +43,7 @@ export const MessageThread = forwardRef<HTMLDivElement, MessageThreadProps>(
                 {item.name}
               </h2>
               <div className="text-sm text-muted-foreground">
-                Conversations regarding Item: {item.uid} - {item.description}
+                Conversations regarding Item: {item.uid}
               </div>
             </div>
           </div>
