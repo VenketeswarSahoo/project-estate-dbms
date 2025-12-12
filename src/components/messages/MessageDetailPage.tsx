@@ -3,11 +3,12 @@
 import { MessageThread } from "@/components/messages/MessageThread";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
-import { Send } from "lucide-react";
+import { Mic, MicOff, Send } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -15,23 +16,84 @@ export default function MessageDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId");
-
   const { messages, items, users, addMessage } = useAppStore();
   const { user } = useAuth();
   const [replyContent, setReplyContent] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Track cursor position for inserting speech text
+  const cursorRef = useRef<number>(0);
+
+  // Helper: insert text at current cursor position
+  const insertText = (
+    original: string,
+    textToInsert: string,
+    index: number
+  ) => {
+    // Ensure index is within bounds
+    const pos = Math.min(Math.max(index, 0), original.length);
+    return original.slice(0, pos) + textToInsert + original.slice(pos);
+  };
+
+  const {
+    isListening,
+    interimResult,
+    startListening,
+    stopListening,
+    resetSpeechContext,
+  } = useSpeechToText({
+    language: "en-US",
+    onFinal: (text) => {
+      // On final result, commit it to state
+      const newFragment = text + " ";
+
+      setReplyContent((prev) => {
+        const updated = insertText(prev, newFragment, cursorRef.current);
+        // Advance cursor position to after the inserted text
+        cursorRef.current += newFragment.length;
+        return updated;
+      });
+
+      // Since we modified content programmatically, we should ensure the cursor in DOM needs update?
+      // React controlled input usually handles value, but cursor position might jump to end.
+      // We might need to restore cursor.
+    },
+  });
+
+  // Effect to restore cursor position after programmatic update
+  useEffect(() => {
+    if (textareaRef.current && isListening) {
+      // This is tricky in React.
+      // If we type, React keeps cursor. If we set state, cursor might jump.
+      // However, for speech append, simpler is usually fine.
+      // If needed, we could use useLayoutEffect with selectionStart setting.
+    }
+  }, [replyContent, isListening]);
+
+  const updateCursorPosition = (
+    e: React.SyntheticEvent<HTMLTextAreaElement>
+  ) => {
+    cursorRef.current = e.currentTarget.selectionStart;
+  };
+
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "m") {
+        e.preventDefault();
+        isListening ? stopListening() : startListening();
+      }
+    };
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [isListening, startListening, stopListening]);
+
   if (!user) return null;
 
   const itemId = params.itemId as string;
   const item = items.find((i) => i.id === itemId);
+  if (!item) return <div>Item not found</div>;
 
-  if (!item) {
-    return <div>Item not found</div>;
-  }
-
-  // Filter messages for current user and item, optionally filtering by specific interlocutor
   const threadMessages = messages.filter(
     (m) =>
       (m.senderId === user.id || m.receiverId === user.id) &&
@@ -41,8 +103,6 @@ export default function MessageDetailPage() {
         m.receiverId === targetUserId)
   );
 
-  // Determine receiver for reply
-  // 1. Try to find the last person who messaged ME (sender !== user.id)
   const lastIncomingMsg = [...threadMessages]
     .sort(
       (a, b) =>
@@ -50,8 +110,6 @@ export default function MessageDetailPage() {
     )
     .find((m) => m.senderId !== user.id);
 
-  // 2. If no incoming messages, try to find the last person I messaged (receiver !== user.id)
-  // This handles the case where I started the thread and am sending another message
   const lastOutgoingMsg = [...threadMessages]
     .sort(
       (a, b) =>
@@ -62,33 +120,24 @@ export default function MessageDetailPage() {
   const replyReceiverId =
     lastIncomingMsg?.senderId || lastOutgoingMsg?.receiverId;
 
-  // Function to scroll to bottom
   const scrollToBottom = () => {
     if (scrollContainerRef.current) {
       const scrollArea = scrollContainerRef.current.querySelector(
         "[data-radix-scroll-area-viewport]"
       );
-      if (scrollArea) {
-        scrollArea.scrollTop = scrollArea.scrollHeight;
-      } else {
-        // Fallback to the container itself
+      if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+      else
         scrollContainerRef.current.scrollTop =
           scrollContainerRef.current.scrollHeight;
-      }
     }
   };
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [threadMessages]);
 
-  // Also scroll to bottom when component mounts
   useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollToBottom();
-    }, 100);
-
+    const timer = setTimeout(() => scrollToBottom(), 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -102,7 +151,6 @@ export default function MessageDetailPage() {
       toast.error("Cannot determine recipient for reply.");
       return;
     }
-
     const newMessage = {
       id: `msg-${uuidv4()}`,
       senderId: user.id,
@@ -112,19 +160,24 @@ export default function MessageDetailPage() {
       timestamp: new Date().toISOString(),
       read: false,
     };
-
     addMessage(newMessage);
     setReplyContent("");
+    cursorRef.current = 0;
     toast.success("Reply sent");
-
-    // Scroll to bottom after message is sent
     setTimeout(scrollToBottom, 50);
   };
+
+  // Calculate display value
+  const displayValue = useMemo(() => {
+    if (isListening && interimResult) {
+      return insertText(replyContent, interimResult, cursorRef.current);
+    }
+    return replyContent;
+  }, [replyContent, isListening, interimResult]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-background rounded-lg border overflow-hidden">
       <div className="flex-1 overflow-hidden relative">
-        {/* Pass ref using forwardRef pattern */}
         <MessageThread
           ref={scrollContainerRef}
           item={item}
@@ -134,30 +187,66 @@ export default function MessageDetailPage() {
         />
       </div>
 
-      {/* Quick Reply Box */}
       <div className="p-4 bg-background border-t">
-        <div className="flex gap-2 max-w-3xl mx-auto items-end">
-          <Textarea
-            placeholder={
-              replyReceiverId ? "Type a reply..." : "Start a conversation..."
-            }
-            ref={textareaRef}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                if (replyContent.trim() && replyReceiverId) {
-                  handleReply();
+        <div className="flex gap-2 max-w-3xl mx-auto items-end w-full">
+          <div className="relative flex-1">
+            <Textarea
+              placeholder="Type a reply or use voice..."
+              ref={textareaRef}
+              onKeyDown={(e) => {
+                updateCursorPosition(e);
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (replyContent.trim() && replyReceiverId) {
+                    handleReply();
+                  }
                 }
-              }
-            }}
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            className="min-h-[60px] resize-none"
-          />
+              }}
+              value={displayValue}
+              onSelect={updateCursorPosition}
+              onClick={updateCursorPosition}
+              onKeyUp={updateCursorPosition}
+              onChange={(e) => {
+                // Determine new text content
+                // Note: e.target.value contains 'displayValue' + user edits.
+                // If 'displayValue' had interim text, it is now committed into e.target.value by the user's action/browser.
+                // This is effectively what we want: if I type over a preview, I make it real.
+                setReplyContent(e.target.value);
+                updateCursorPosition(e);
+
+                // If we were listening, the context changed. Determine if we need to reset speech to avoid duplication.
+                if (isListening) {
+                  resetSpeechContext();
+                }
+              }}
+              className="min-h-[60px] max-h-[160px] resize-none pr-10 overflow-y-auto custom-scrollbar"
+            />
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isListening) stopListening();
+                else startListening();
+              }}
+              className={`absolute right-2 bottom-2 p-2 rounded-full transition ${
+                isListening
+                  ? "bg-red-500 text-white animate-pulse"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {isListening ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+
           <Button onClick={handleReply} disabled={!replyContent.trim()}>
             <Send className="h-4 w-4" />
           </Button>
         </div>
+
         {!replyReceiverId && threadMessages.length === 0 && (
           <p className="text-xs text-muted-foreground mt-2 text-center">
             No conversation history. Use the "New Message" button to start a

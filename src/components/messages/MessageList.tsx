@@ -2,12 +2,11 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Item, Message } from "@/types";
+import { useAuth } from "@/providers/auth";
+import { Item, Message, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage } from "../ui/avatar";
-import { useAuth } from "@/providers/auth";
-import { User } from "@/types";
 
 interface MessageListProps {
   items: Item[];
@@ -129,7 +128,7 @@ export function MessageList({ items, messages, users }: MessageListProps) {
 
             {/* Message Preview */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 max-w-[60vw]">
                 <span className="font-medium text-sm truncate">
                   {thread.lastMessage.content}
                 </span>
