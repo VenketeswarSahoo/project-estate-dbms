@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +31,7 @@ import {
   Type,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Card } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
@@ -31,6 +43,13 @@ interface ClientTableProps {
 
 export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
   const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+
+  const handleDeleteClick = (client: Client) => {
+    setClientToDelete(client);
+    setDeleteDialogOpen(true);
+  };
 
   const getUserName = (id: string) => {
     return users.find((u) => u.id === id)?.name || "Unknown";
@@ -79,7 +98,10 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
             </TableRow>
           ) : (
             clients.map((client) => (
-              <TableRow key={client.id} className="hover:bg-muted/50">
+              <TableRow
+                key={client.id}
+                className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r"
+              >
                 <TableCell className="font-medium">{client.name}</TableCell>
                 <TableCell>{client.address}</TableCell>
                 <TableCell>
@@ -108,20 +130,50 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
                         <p>Edit Client</p>
                       </TooltipContent>
                     </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => onDelete(client.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete Client</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <AlertDialog
+                      open={deleteDialogOpen}
+                      onOpenChange={setDeleteDialogOpen}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDeleteClick(client)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Delete Client</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Client</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "
+                            {clientToDelete?.name}"? This action cannot be
+                            undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/80"
+                            onClick={() => {
+                              clientToDelete && onDelete(clientToDelete.id);
+                              setDeleteDialogOpen(false);
+                              setClientToDelete(null);
+                            }}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </TableCell>
               </TableRow>

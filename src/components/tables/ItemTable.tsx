@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,7 +44,7 @@ import {
   Plus,
   Search,
   Settings,
-  Trash,
+  Trash2,
   Type,
   UserRound,
 } from "lucide-react";
@@ -82,6 +93,14 @@ export function ItemTable({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
   const [bulkAction, setBulkAction] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+
+  // Add this handler
+  const handleDeleteClick = (item: Item) => {
+    setItemToDelete(item);
+    setDeleteDialogOpen(true);
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -509,15 +528,16 @@ export function ItemTable({
                           </Tooltip>
                           {user?.role === "ADMIN" && (
                             <Tooltip>
-                              <TooltipTrigger>
+                              <TooltipTrigger asChild>
                                 <Button
                                   variant="outline"
                                   size="icon"
                                   onClick={(e) => {
-                                    onDelete?.(item.id);
+                                    e.stopPropagation();
+                                    handleDeleteClick(item);
                                   }}
                                 >
-                                  <Trash className="w-4 h-4 text-destructive" />
+                                  <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -623,6 +643,32 @@ export function ItemTable({
             <div>Showing {gridViewItems.length} items</div>
           </div>
         </>
+      )}
+      {itemToDelete && (
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Item</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{itemToDelete.name}"? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/80"
+                onClick={() => {
+                  onDelete?.(itemToDelete.id);
+                  setDeleteDialogOpen(false);
+                  setItemToDelete(null);
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );

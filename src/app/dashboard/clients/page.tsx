@@ -22,10 +22,8 @@ export default function ClientsPage() {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this client?")) {
-      deleteClient(id);
-      toast.success("Client deleted successfully");
-    }
+    deleteClient(id);
+    toast.success("Client deleted");
   };
 
   return (
