@@ -61,22 +61,22 @@ export default function MessagesPage() {
   const myInterlocutors = users.filter((u) => myInterlocutorIds.has(u.id));
 
   return (
-    <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="space-y-4 md:space-y-6 h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] flex flex-col">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search threads..."
-              className="pl-8"
+              className="pl-8 w-full"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="w-[180px]">
+          <div className="w-full sm:w-[180px]">
             <Select value={userFilter} onValueChange={setUserFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Filter by Person" />
               </SelectTrigger>
               <SelectContent>
@@ -92,7 +92,7 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      <Card className="flex-1 p-0 overflow-hidden">
+      <Card className="flex-1 p-0 overflow-hidden border-0 sm:border">
         <MessageList
           items={filteredItems}
           messages={myMessages}

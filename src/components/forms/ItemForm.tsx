@@ -351,11 +351,6 @@ export function ItemForm({
                             {...field}
                             readOnly={effectiveReadOnly}
                           />
-                          <datalist id="saved-actions">
-                            {currentClient?.savedActions?.map((act) => (
-                              <option key={act} value={act} />
-                            ))}
-                          </datalist>
                         </div>
                       ) : (
                         <Input

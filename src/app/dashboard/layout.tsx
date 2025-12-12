@@ -1,3 +1,4 @@
+import { FloatingScanButton } from "@/components/common/FloatingScanButton";
 import { AppShell } from "@/components/layout/AppShell";
 import type { Metadata } from "next";
 
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <>
       <AppShell>{children}</AppShell>
+      <FloatingScanButton />
     </>
   );
 }

@@ -1,6 +1,4 @@
 "use client";
-
-import { FloatingScanButton } from "@/components/common/FloatingScanButton";
 import { RecentItemsList } from "@/components/dashboard/RecentItemsList";
 import { RecentMessagesList } from "@/components/dashboard/RecentMessagesList";
 import { ChartAreaGradient } from "@/components/dashboard/chat-line-multiple";
@@ -26,8 +24,6 @@ export default function DashboardPage() {
         <RecentMessagesList />
         <RecentItemsList />
       </div>
-
-      <FloatingScanButton />
     </div>
   );
 }

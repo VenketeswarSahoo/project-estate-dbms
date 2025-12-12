@@ -194,9 +194,9 @@ export function ItemTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between md:items-end lg:items-center">
         <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full lg:w-72">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search name, UID, barcode..."
@@ -329,244 +329,282 @@ export function ItemTable({
             </DropdownMenu>
           </div>
           {canEdit && (
-            <Button onClick={() => router.push("/dashboard/items/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
+            <div className="lg:block hidden">
+              <Button onClick={() => router.push("/dashboard/items/new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
           )}
         </div>
       </div>
 
       {selectedItems.length > 0 && canEdit && (
-        <div className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm animate-in fade-in slide-in-from-top-2">
-          <span className="font-medium px-2">
-            {selectedItems.length} selected
-          </span>
-          <div className="h-4 w-px bg-border mx-2" />
-          <Select
-            value={bulkAction}
-            onValueChange={(value) => {
-              setBulkAction(value);
-              handleBulkAction(value);
-            }}
-          >
-            <SelectTrigger className="w-[180px] bg-background">
-              <SelectValue placeholder="Select Action" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SALE">Sale</SelectItem>
-              <SelectItem value="DISTRIBUTE">Distribute</SelectItem>
-              <SelectItem value="DONATE">Donate</SelectItem>
-              <SelectItem value="OTHER">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={() => handleBulkMessage()}>
-            Send Message
-          </Button>
+        <div className="flex flex-wrap items-center gap-2 p-2 bg-muted rounded-md text-sm animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center">
+            <span className="font-medium px-2 whitespace-nowrap">
+              {selectedItems.length} selected
+            </span>
+            <div className="h-4 w-px bg-border mx-2" />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={bulkAction}
+              onValueChange={(value) => {
+                setBulkAction(value);
+                handleBulkAction(value);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[180px] bg-background">
+                <SelectValue placeholder="Select Action" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SALE">Sale</SelectItem>
+                <SelectItem value="DISTRIBUTE">Distribute</SelectItem>
+                <SelectItem value="DONATE">Donate</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              onClick={() => handleBulkMessage()}
+              className="flex-1"
+            >
+              Send Message
+            </Button>
+          </div>
         </div>
       )}
 
       {viewMode === "list" ? (
         <>
-          <Card className="p-0">
-            <Table>
-              <TableHeader className="text-center">
-                <TableRow className=":border-border [&>:not(:last-child)]:border-r">
-                  <TableHead className="w-10">
-                    <Checkbox
-                      checked={
-                        paginatedItems.length > 0 &&
-                        selectedItems.length === paginatedItems.length
-                      }
-                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                    />
-                  </TableHead>
-                  {showPhotos && <TableHead className="w-20">Photo</TableHead>}
-                  <TableHead>
-                    <div className="flex items-center font-bold">
-                      <Hash className="mr-2 h-4 w-4" />
-                      UID
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center font-bold">
-                      <Type className="mr-2 h-4 w-4" />
-                      Name
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center font-bold">
-                      <UserRound className="mr-2 h-4 w-4" />
-                      Client
-                    </div>
-                  </TableHead>
-                  <TableHead>
-                    <div className="flex items-center font-bold">
-                      <BadgeCheck className="mr-2 h-4 w-4" />
-                      Status
-                    </div>
-                  </TableHead>
-                  <TableHead className="flex justify-center">
-                    <div className="flex items-center font-bold">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Action
-                    </div>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={showPhotos ? 7 : 6}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      No items found.
-                    </TableCell>
+          <Card className="p-0 overflow-hidden border">
+            <div className="overflow-x-auto custom-scrollbar">
+              <Table>
+                <TableHeader className="bg-muted/50 text-center">
+                  <TableRow className="border-b [&>:not(:last-child)]:border-r">
+                    <TableHead className="w-10 text-center">
+                      <Checkbox
+                        checked={
+                          paginatedItems.length > 0 &&
+                          selectedItems.length === paginatedItems.length
+                        }
+                        onCheckedChange={(checked) =>
+                          handleSelectAll(!!checked)
+                        }
+                      />
+                    </TableHead>
+                    {showPhotos && (
+                      <TableHead className="w-20 text-center">Photo</TableHead>
+                    )}
+                    <TableHead className="min-w-[120px]">
+                      <div className="flex items-center font-bold">
+                        <Hash className="mr-2 h-4 w-4" />
+                        UID
+                      </div>
+                    </TableHead>
+                    <TableHead className="min-w-[150px]">
+                      <div className="flex items-center font-bold">
+                        <Type className="mr-2 h-4 w-4" />
+                        Name
+                      </div>
+                    </TableHead>
+                    <TableHead className="min-w-[150px]">
+                      <div className="flex items-center font-bold">
+                        <UserRound className="mr-2 h-4 w-4" />
+                        Client
+                      </div>
+                    </TableHead>
+                    <TableHead className="min-w-[120px]">
+                      <div className="flex items-center font-bold">
+                        <BadgeCheck className="mr-2 h-4 w-4" />
+                        Status
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center min-w-[140px]">
+                      <div className="flex items-center justify-center font-bold">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Action
+                      </div>
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  paginatedItems.map((item) => {
-                    let statusDisplay = item.action || "Active";
-                    let statusNote = item.actionNote;
-
-                    if (
-                      user?.role === "BENEFICIARY" &&
-                      item.action === "DISTRIBUTE"
-                    ) {
-                      if (statusNote !== user.name) {
-                        statusNote = "DISTRIBUTION";
-                      }
-                    } else if (item.action === "DISTRIBUTE") {
-                      statusNote = `To: ${item.actionNote}`;
-                    }
-
-                    return (
-                      <TableRow
-                        key={item.id}
-                        className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r"
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={showPhotos ? 7 : 6}
+                        className="text-center py-12 text-muted-foreground"
                       >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedItems.includes(item.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelectOne(item.id, !!checked)
-                            }
-                          />
-                        </TableCell>
-                        {showPhotos && (
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Search className="h-8 w-8 text-muted-foreground/50" />
+                          <p>No items found matching your filters.</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedItems.map((item) => {
+                      let statusDisplay = item.action || "Active";
+                      let statusNote = item.actionNote;
+
+                      if (
+                        user?.role === "BENEFICIARY" &&
+                        item.action === "DISTRIBUTE"
+                      ) {
+                        if (statusNote !== user.name) {
+                          statusNote = "DISTRIBUTION";
+                        }
+                      } else if (item.action === "DISTRIBUTE") {
+                        statusNote = `To: ${item.actionNote}`;
+                      }
+
+                      return (
+                        <TableRow
+                          key={item.id}
+                          className="hover:bg-muted/50 transition-colors [&>:not(:last-child)]:border-r"
+                        >
+                          <TableCell
+                            className="text-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectOne(item.id, !!checked)
+                              }
+                            />
+                          </TableCell>
+                          {showPhotos && (
+                            <TableCell className="text-center">
+                              {item.photos?.[0] ? (
+                                <Image
+                                  src={item.photos[0]}
+                                  alt=""
+                                  className="h-10 w-10 object-cover rounded mx-auto"
+                                  width={40}
+                                  height={40}
+                                />
+                              ) : (
+                                <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] mx-auto text-muted-foreground">
+                                  No Img
+                                </div>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell className="font-mono text-sm whitespace-nowrap">
+                            {item.uid}
+                          </TableCell>
+                          <TableCell className="font-medium text-sm">
+                            {item.name}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {clients.find((c) => c.id === item.clientId)
+                              ?.name || "Unknown"}
+                          </TableCell>
                           <TableCell>
-                            {item.photos?.[0] ? (
-                              <Image
-                                src={item.photos[0]}
-                                alt=""
-                                className="h-10 w-10 object-cover rounded"
-                                width={40}
-                                height={40}
-                              />
-                            ) : (
-                              <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-xs">
-                                No Img
-                              </div>
+                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground whitespace-nowrap">
+                              {statusDisplay}
+                            </span>
+                            {statusNote && (
+                              <span
+                                className="block text-xs text-muted-foreground mt-1 truncate max-w-[120px]"
+                                title={statusNote}
+                              >
+                                {statusNote}
+                              </span>
                             )}
                           </TableCell>
-                        )}
-                        <TableCell className="font-mono">{item.uid}</TableCell>
-                        <TableCell className="font-medium">
-                          {item.name}
-                        </TableCell>
-                        <TableCell>
-                          {clients.find((c) => c.id === item.clientId)?.name ||
-                            "Unknown"}
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                            {statusDisplay}
-                          </span>
-                          {statusNote && (
-                            <span className="block text-xs text-muted-foreground mt-1">
-                              {statusNote}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center flex items-center gap-2 justify-center">
-                          {(user?.role === "ADMIN" ||
-                            user?.role === "AGENT") && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    router.push(`/dashboard/items/${item.id}`);
-                                  }}
-                                >
-                                  <Pencil className="w-4 h-4 text-green-700" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Edit Item</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/dashboard/items/${item.id}`);
-                                }}
-                              >
-                                <Eye className="w-4 h-4 text-blue-600" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>View Item</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          {user?.role === "ADMIN" && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteClick(item);
-                                  }}
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Delete Item</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                          <TableCell className="text-center">
+                            <div className="flex items-center gap-1 justify-center">
+                              {(user?.role === "ADMIN" ||
+                                user?.role === "AGENT") && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-green-700 hover:text-green-800 hover:bg-green-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(
+                                          `/dashboard/items/${item.id}`
+                                        );
+                                      }}
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit Item</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      router.push(
+                                        `/dashboard/items/${item.id}`
+                                      );
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>View Item</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              {user?.role === "ADMIN" && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-red-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(item);
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete Item</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4 py-2">
+            <div className="text-sm text-muted-foreground order-2 lg:order-1">
               Showing {startIndex + 1} to {endIndex} of {totalItems} items
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span>Rows per page:</span>
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto order-1 lg:order-2">
+              <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Rows per page
+                </span>
                 <Select
                   value={rowsPerPage.toString()}
                   onValueChange={handleRowsPerPageChange}
                 >
-                  <SelectTrigger className="w-[80px]">
+                  <SelectTrigger className="w-[70px] h-8">
                     <SelectValue placeholder={rowsPerPage} />
                   </SelectTrigger>
                   <SelectContent>
@@ -578,7 +616,8 @@ export function ItemTable({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
+
+              <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="icon"
@@ -598,12 +637,12 @@ export function ItemTable({
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <div className="flex items-center gap-1">
-                  <span className="px-2">Page</span>
-                  <span className="font-medium px-2 min-w-[2rem] text-center">
+                <div className="flex items-center gap-1 mx-1 text-sm">
+                  <span className="text-muted-foreground">Page</span>
+                  <span className="font-medium min-w-[1.5rem] text-center">
                     {currentPage}
                   </span>
-                  <span className="px-2">of {totalPages}</span>
+                  <span className="text-muted-foreground">of {totalPages}</span>
                 </div>
 
                 <Button

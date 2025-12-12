@@ -114,7 +114,7 @@ export function ComposeMessageDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg p-0"
+          className="fixed lg:bottom-8 bottom-28 right-8 h-14 w-14 rounded-full shadow-lg p-0"
           size="icon"
         >
           <Plus className="h-6 w-6" />

@@ -176,7 +176,7 @@ export default function MessageDetailPage() {
   }, [replyContent, isListening, interimResult]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-background rounded-lg border overflow-hidden">
+    <div className="flex flex-col h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] bg-background rounded-lg border-0 sm:border overflow-hidden -mx-4 -my-4 sm:mx-0 sm:my-0 pb-16 sm:pb-0">
       <div className="flex-1 overflow-hidden relative">
         <MessageThread
           ref={scrollContainerRef}
@@ -187,7 +187,7 @@ export default function MessageDetailPage() {
         />
       </div>
 
-      <div className="p-4 bg-background border-t">
+      <div className="p-3 md:p-4 bg-background border-t">
         <div className="flex gap-2 max-w-3xl mx-auto items-end w-full">
           <div className="relative flex-1">
             <Textarea
@@ -208,18 +208,14 @@ export default function MessageDetailPage() {
               onKeyUp={updateCursorPosition}
               onChange={(e) => {
                 // Determine new text content
-                // Note: e.target.value contains 'displayValue' + user edits.
-                // If 'displayValue' had interim text, it is now committed into e.target.value by the user's action/browser.
-                // This is effectively what we want: if I type over a preview, I make it real.
                 setReplyContent(e.target.value);
                 updateCursorPosition(e);
 
-                // If we were listening, the context changed. Determine if we need to reset speech to avoid duplication.
                 if (isListening) {
                   resetSpeechContext();
                 }
               }}
-              className="min-h-[60px] max-h-[160px] resize-none pr-10 overflow-y-auto custom-scrollbar"
+              className="min-h-[44px] md:min-h-[60px] max-h-[160px] resize-none pr-10 overflow-y-auto custom-scrollbar text-base"
             />
 
             <button
@@ -242,8 +238,14 @@ export default function MessageDetailPage() {
             </button>
           </div>
 
-          <Button onClick={handleReply} disabled={!replyContent.trim()}>
+          <Button
+            onClick={handleReply}
+            disabled={!replyContent.trim()}
+            size="icon"
+            className="shrink-0 h-11 w-11 md:h-10 md:w-auto"
+          >
             <Send className="h-4 w-4" />
+            <span className="sr-only md:not-sr-only md:ml-2">Send</span>
           </Button>
         </div>
 
