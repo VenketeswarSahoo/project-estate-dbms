@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors " +
-    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 outline-none " +
+  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors" +
+    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 outline-none" +
     "focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
@@ -32,8 +32,8 @@ const buttonVariants = cva(
           "hover:bg-black/90 dark:hover:bg-primary/80",
       },
       size: {
-        default: "h-9 px-5 w-[158px]",
-        sm: "h-7 px-4 text-xs w-[128px]",
+        default: "h-9 px-5 w-[158px] text-sm",
+        sm: "h-7 px-4 text-xs w-[128px] text-sm",
         lg: "h-11 px-6 w-[158px]",
         icon: "h-9 w-12",
       },

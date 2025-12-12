@@ -37,10 +37,10 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
   };
 
   return (
-    <Card className="px-4 py-0">
+    <Card className="p-0 overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className=":border-border [&>:not(:last-child)]:border-r">
             <TableHead>
               <div className="flex items-center font-bold">
                 <Type className="mr-2 h-4 w-4" />

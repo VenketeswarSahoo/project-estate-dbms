@@ -349,10 +349,10 @@ export function ItemTable({
 
       {viewMode === "list" ? (
         <>
-          <Card className="px-4 py-0">
+          <Card className="p-0">
             <Table>
               <TableHeader className="text-center">
-                <TableRow>
+                <TableRow className=":border-border [&>:not(:last-child)]:border-r">
                   <TableHead className="w-10">
                     <Checkbox
                       checked={
@@ -422,7 +422,10 @@ export function ItemTable({
                     }
 
                     return (
-                      <TableRow key={item.id} className="hover:bg-muted/50">
+                      <TableRow
+                        key={item.id}
+                        className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r"
+                      >
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedItems.includes(item.id)}
