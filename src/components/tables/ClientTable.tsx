@@ -37,7 +37,7 @@ export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
   };
 
   return (
-    <Card className="px-4 py-2">
+    <Card className="px-4 py-0">
       <Table>
         <TableHeader>
           <TableRow>

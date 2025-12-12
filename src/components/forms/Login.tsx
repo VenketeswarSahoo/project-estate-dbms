@@ -38,8 +38,8 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Estate Manager</CardTitle>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Login</CardTitle>
           <CardDescription>
             Enter your credentials to access the account
           </CardDescription>

@@ -349,7 +349,7 @@ export function ItemTable({
 
       {viewMode === "list" ? (
         <>
-          <Card className="px-4 py-2">
+          <Card className="px-4 py-0">
             <Table>
               <TableHeader className="text-center">
                 <TableRow>

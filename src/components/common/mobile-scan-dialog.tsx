@@ -1,24 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { BarcodeScanner } from "@/components/common/barcode-scanner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { Camera, Search } from "lucide-react";
-import { toast } from "sonner";
-import { BarcodeScanner } from "@/components/common/barcode-scanner";
 import { useAppStore } from "@/store/store";
+import { Camera, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 export function MobileScanDialog({
   open,
@@ -61,13 +60,6 @@ export function MobileScanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Camera className="mr-2 h-4 w-4" />
-          Scan Item
-        </Button>
-      </DialogTrigger>
-
       <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Find Item</DialogTitle>

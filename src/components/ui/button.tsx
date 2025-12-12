@@ -27,7 +27,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
 
         default:
-          "relative bg-gradient-to-t from-primary to-primary/90 text-primary-foreground overflow-hidden cursor-pointer w-[138px] px-4 py-2 " +
+          "relative bg-gradient-to-b from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden cursor-pointer w-[138px] px-4 py-2 " +
           "before:absolute before:inset-0 before:border-t-[3px] before:border-zinc-400 before:rounded-lg before:scale-[0.98] before:opacity-75 " +
           "hover:bg-black/90 dark:hover:bg-primary/80",
       },

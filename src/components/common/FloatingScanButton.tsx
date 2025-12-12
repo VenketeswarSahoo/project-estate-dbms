@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Camera } from "lucide-react";
+import { useState } from "react";
 import { MobileScanDialog } from "./mobile-scan-dialog";
 
 export function FloatingScanButton() {
@@ -27,7 +27,6 @@ export function FloatingScanButton() {
         </Button>
       </div>
 
-      {/* Dialog itself */}
       <MobileScanDialog open={open} onOpenChange={setOpen} />
     </>
   );
