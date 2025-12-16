@@ -11,18 +11,23 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function EditClientPage() {
-  const { clients, updateClient, users } = useAppStore();
+  const { users, updateUser, fetchUsers } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const [client, setClient] = useState<Client | null>(null);
 
   useEffect(() => {
-    const found = clients.find((c) => c.id === params.id);
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    // Clients are just users with role 'CLIENT' or we just find by ID
+    const found = users?.find((c) => c.id === params.id && c.role === "CLIENT");
     if (found) {
-      setClient(found);
+      setClient(found as Client); // Cast because User with CLIENT role is Client
     }
-  }, [params.id, clients]);
+  }, [params.id, users]);
 
   if (!user || user.role !== "ADMIN") {
     return <div>Access Denied</div>;
@@ -31,7 +36,8 @@ export default function EditClientPage() {
   if (!client) return <div>Loading...</div>;
 
   const handleSubmit = (data: any) => {
-    updateClient(client.id, data);
+    // console.log("Updating client with data:", data); // Debug logging
+    updateUser(client.id, data);
     toast.success("Client updated successfully");
     router.push("/dashboard/clients");
   };

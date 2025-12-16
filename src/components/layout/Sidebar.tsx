@@ -4,10 +4,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth";
 import {
   Building,
+  Building2,
+  HeartHandshake,
   LayoutDashboard,
   MessageSquare,
   Package,
   Settings,
+  UserCheck,
+  UserCog,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -32,11 +36,28 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
   ];
 
   if (user.role === "ADMIN") {
-    mainMenuItems.push({
-      href: "/dashboard/clients",
-      label: "Clients",
-      icon: Users,
-    });
+    mainMenuItems.push(
+      {
+        href: "/dashboard/agents",
+        label: "Agents",
+        icon: UserCog,
+      },
+      {
+        href: "/dashboard/executors",
+        label: "Executors",
+        icon: UserCheck,
+      },
+      {
+        href: "/dashboard/beneficiaries",
+        label: "Beneficiaries",
+        icon: HeartHandshake,
+      },
+      {
+        href: "/dashboard/clients",
+        label: "Clients",
+        icon: Building2,
+      }
+    );
   }
 
   const settingsItem = {

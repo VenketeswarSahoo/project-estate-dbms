@@ -3,6 +3,16 @@
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
 import { ItemForm } from "@/components/forms/ItemForm";
 import { GalleryModal } from "@/components/slider/gallery-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
@@ -11,17 +21,24 @@ import { useAppStore } from "@/store/store";
 import { ArrowLeft, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ItemDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { items, clients, updateItem, deleteItem } = useAppStore();
+  const { items, users, updateItem, deleteItem, fetchUsers, fetchItems } =
+    useAppStore();
   const { user } = useAuth();
+
+  useEffect(() => {
+    fetchUsers();
+    fetchItems();
+  }, [fetchUsers, fetchItems]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const itemId = params.id as string;
   const item = items.find((i) => i.id === itemId);
@@ -38,17 +55,18 @@ export default function ItemDetailsPage() {
     (user.role === "ADMIN" || user.role === "AGENT") && !item.isLocked;
   const canDelete = user.role === "ADMIN";
 
+  const clients = users.filter((u) => u.role === "CLIENT");
+
   const handleSubmit = (data: any) => {
     updateItem(itemId, data);
     toast.success("Item updated successfully");
   };
 
-  const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this item?")) {
-      deleteItem(itemId);
-      toast.success("Item deleted");
-      router.push("/dashboard/items");
-    }
+  const handleDeleteConfirm = () => {
+    deleteItem(itemId);
+    toast.success("Item deleted");
+    setDeleteDialogOpen(false);
+    router.push("/dashboard/items");
   };
 
   const openGallery = (e: React.MouseEvent, index: number) => {
@@ -72,7 +90,7 @@ export default function ItemDetailsPage() {
           <Button
             variant="destructive"
             className="w-[120px]"
-            onClick={handleDelete}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
@@ -173,7 +191,7 @@ export default function ItemDetailsPage() {
           </Card>
         </div>
       </div>
-      {/* <ItemCommunicationLog itemId={itemId} /> */}
+
       <GalleryModal
         images={item.photos}
         title={item.name}
@@ -181,6 +199,28 @@ export default function ItemDetailsPage() {
         onClose={() => setGalleryOpen(false)}
         initialIndex={currentIndex}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{item.name}"? This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/80"
+              onClick={handleDeleteConfirm}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

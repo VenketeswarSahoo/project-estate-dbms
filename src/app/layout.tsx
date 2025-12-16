@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/providers/providers";
+import { ErrorBoundary } from "@/components/errors/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>{children}</AuthProvider>
-          <Toaster position="bottom-right" richColors closeButton />
-        </ThemeProvider>
+        <Providers>
+          <AuthProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

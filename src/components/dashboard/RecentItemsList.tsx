@@ -9,22 +9,22 @@ import { Badge } from "@/components/ui/badge";
 
 export function RecentItemsList() {
   const { user } = useAuth();
-  const { items, clients } = useAppStore();
+  const { items, users } = useAppStore();
 
   if (!user) return null;
 
   // Filter Items based on Role (Same logic as stats)
   let myItems = items;
   if (user.role === "EXECUTOR") {
-    const myClientIds = clients
+    const myUserIds = users
       .filter((c) => c.executorId === user.id)
       .map((c) => c.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+    myItems = items.filter((i) => myUserIds.includes(i.clientId));
   } else if (user.role === "BENEFICIARY") {
-    const myClientIds = clients
-      .filter((c) => c.beneficiaryIds.includes(user.id))
+    const myUserIds = users
+      .filter((c) => c.beneficiaryIds?.includes(user.id))
       .map((c) => c.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+    myItems = items.filter((i) => myUserIds.includes(i.clientId));
   }
 
   const recentItems = [...myItems]

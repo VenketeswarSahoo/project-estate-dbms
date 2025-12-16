@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password?: string) => boolean;
+  login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -24,8 +24,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true);
   }, []);
 
-  const login = (email: string, password?: string) => {
-    const success = storeLogin(email, password);
+  const login = async (email: string, password?: string) => {
+    const success = await storeLogin(email, password);
     if (success) {
       router.push("/dashboard");
     }

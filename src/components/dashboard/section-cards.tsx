@@ -21,11 +21,12 @@ import { useAuth } from "@/providers/auth";
 
 export function SectionCards() {
   const { user } = useAuth();
-  const { clients, items, messages } = useAppStore();
+  const { users, items, messages } = useAppStore();
 
   if (!user) return null;
 
   // 1. Calculate Stats
+  const clients = users.filter((u) => u.role === "CLIENT");
   const totalClients = clients.length;
 
   // Filter messages
@@ -45,7 +46,7 @@ export function SectionCards() {
     // Usually beneficiaries only care about what they are receiving or what is in the estate.
     // Let's show items from their Estate for visibility, but highlight their distributions.
     const myClientIds = clients
-      .filter((c) => c.beneficiaryIds.includes(user.id))
+      .filter((c) => c.beneficiaryIds?.includes(user.id))
       .map((c) => c.id);
     myItems = items.filter((i) => myClientIds.includes(i.clientId));
   }

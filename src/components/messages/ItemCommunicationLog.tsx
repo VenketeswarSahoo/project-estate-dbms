@@ -55,7 +55,6 @@ export function ItemCommunicationLog({ itemId }: ItemCommunicationLogProps) {
     }
 
     addMessage({
-      id: uuidv4(),
       senderId: user.id,
       receiverId: receiverId,
       itemId: itemId,

@@ -1,175 +1,260 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { User, Client, Item, Message } from "@/types";
-import {
-  MOCK_USERS,
-  MOCK_CLIENTS,
-  MOCK_ITEMS,
-  MOCK_MESSAGES,
-} from "../data/mock-data";
+import { jwtDecode } from "jwt-decode";
 
 interface AppState {
-  currentUser: User | null;
+  token: string | null;
+  currentUser: CurrentUser | null;
   users: User[];
-  clients: Client[];
   items: Item[];
   messages: Message[];
 
-  login: (email: string, password?: string) => boolean;
-  logout: () => void;
+  fetchUsers: (role?: string) => Promise<void>;
+  fetchItems: (clientId?: string) => Promise<void>;
+  fetchMessages: (filters?: any) => Promise<void>;
 
-  addItem: (item: Item) => void;
-  updateItem: (id: string, updates: Partial<Item>) => void;
-  deleteItem: (id: string) => void;
+  login: (email: string, password?: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 
-  addMessage: (message: Message) => void;
-  markMessageRead: (id: string) => void;
+  addItem: (
+    item: Omit<Item, "id" | "createdAt" | "updatedAt">
+  ) => Promise<void>;
+  updateItem: (id: string, updates: Partial<Item>) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+  batchUpdateItems: (ids: string[], updates: Partial<Item>) => Promise<void>;
 
-  addClientBeneficiary: (clientId: string, name: string) => void;
-  addClientDonationRecipient: (clientId: string, name: string) => void;
-  addClientAction: (clientId: string, action: string) => void;
+  addUser: (user: Partial<User>) => Promise<void>;
+  updateUser: (id: string, updates: Partial<User>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
 
-  addClient: (client: Client) => void;
-  updateClient: (id: string, updates: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  addClientHelper: (client: Partial<Client>) => Promise<void>;
+  addMessage: (message: Omit<Message, "id">) => Promise<void>;
+}
 
-  batchUpdateItems: (ids: string[], updates: Partial<Item>) => void;
-  batchAddMessage: (messages: Message[]) => void;
+export type Role = "ADMIN" | "AGENT" | "EXECUTOR" | "BENEFICIARY" | "CLIENT";
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      token: null,
       currentUser: null,
-      users: MOCK_USERS,
-      clients: MOCK_CLIENTS,
-      items: MOCK_ITEMS,
-      messages: MOCK_MESSAGES,
+      users: [],
+      items: [],
+      messages: [],
 
-      login: (email, password) => {
-        const user = get().users.find((u) => u.email === email);
-        if (user) {
-          if (password && user.password && user.password !== password) {
-            return false;
-          }
-          set({ currentUser: user });
+      // ------------------------
+      // Auth
+      // ------------------------
+      login: async (email, password) => {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.token) {
+          // Decode JWT client-side
+          const decoded: CurrentUser = jwtDecode(data.token);
+          set({ currentUser: decoded, token: data.token }); // ✅ populate user directly
           return true;
         }
+
+        console.error("Login failed:", data.error);
         return false;
       },
-      logout: () => set({ currentUser: null }),
 
-      addItem: (item) => set((state) => ({ items: [...state.items, item] })),
-      updateItem: (id, updates) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.id === id
-              ? { ...item, ...updates, updatedAt: new Date().toISOString() }
-              : item
-          ),
-        })),
-      deleteItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
-        })),
+      logout: async () => {
+        try {
+          await fetch("/api/auth/logout", { method: "POST" });
+          set({ currentUser: null, users: [], items: [], messages: [] });
+          window.localStorage.clear();
+          window.sessionStorage.clear();
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
+      },
 
-      addMessage: (message) =>
-        set((state) => ({ messages: [...state.messages, message] })),
-      markMessageRead: (id) =>
-        set((state) => ({
-          messages: state.messages.map((msg) =>
-            msg.id === id ? { ...msg, read: true } : msg
-          ),
-        })),
+      // ------------------------
+      // Fetch
+      // ------------------------
+      fetchUsers: async (role) => {
+        try {
+          const query = role ? `?role=${role}` : "";
+          const res = await fetch(`/api/users${query}`);
+          if (res.ok) {
+            const data = await res.json();
+            set({ users: data });
+          }
+        } catch (err) {
+          console.error("Failed to fetch users", err);
+        }
+      },
 
-      addClientBeneficiary: (clientId, name) =>
-        set((state) => ({
-          clients: state.clients.map((c) => {
-            if (c.id === clientId) {
-              const saved = c.savedBeneficiaries || [];
-              if (!saved.includes(name)) {
-                return { ...c, savedBeneficiaries: [...saved, name] };
-              }
-            }
-            return c;
-          }),
-        })),
+      fetchItems: async (clientId) => {
+        try {
+          const query = clientId ? `?clientId=${clientId}` : "";
+          const res = await fetch(`/api/items${query}`);
+          if (res.ok) {
+            const data = await res.json();
+            set({ items: data });
+          }
+        } catch (err) {
+          console.error("Failed to fetch items", err);
+        }
+      },
 
-      addClientDonationRecipient: (clientId, name) =>
-        set((state) => ({
-          clients: state.clients.map((c) => {
-            if (c.id === clientId) {
-              const saved = c.savedDonationRecipients || [];
-              if (!saved.includes(name)) {
-                return { ...c, savedDonationRecipients: [...saved, name] };
-              }
-            }
-            return c;
-          }),
-        })),
+      fetchMessages: async (filters) => {
+        try {
+          const queryParams = new URLSearchParams(filters).toString();
+          const query = queryParams ? `?${queryParams}` : "";
+          const res = await fetch(`/api/messages${query}`);
+          if (res.ok) {
+            const data = await res.json();
+            set({ messages: data });
+          }
+        } catch (err) {
+          console.error("Failed to fetch messages", err);
+        }
+      },
 
-      addClientAction: (clientId, action) =>
-        set((state) => ({
-          clients: state.clients.map((c) => {
-            if (c.id === clientId) {
-              const saved = c.savedActions || [];
-              if (!saved.includes(action)) {
-                return { ...c, savedActions: [...saved, action] };
-              }
-            }
-            return c;
-          }),
-        })),
+      // ------------------------
+      // Item CRUD
+      // ------------------------
+      addItem: async (itemData) => {
+        try {
+          const res = await fetch("/api/items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(itemData),
+          });
+          if (res.ok) {
+            const newItem = await res.json();
+            set((state) => ({ items: [newItem, ...state.items] }));
+          }
+        } catch (err) {
+          console.error("Failed to add item", err);
+        }
+      },
 
-      addClient: (client) =>
-        set((state) => ({ clients: [...state.clients, client] })),
-      updateClient: (id, updates) =>
-        set((state) => ({
-          clients: state.clients.map((c) =>
-            c.id === id ? { ...c, ...updates } : c
-          ),
-        })),
-      deleteClient: (id) =>
-        set((state) => ({
-          clients: state.clients.filter((c) => c.id !== id),
-        })),
+      updateItem: async (id, updates) => {
+        try {
+          const res = await fetch(`/api/items/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updates),
+          });
+          if (res.ok) {
+            const updatedItem = await res.json();
+            set((state) => ({
+              items: state.items.map((i) => (i.id === id ? updatedItem : i)),
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to update item", err);
+        }
+      },
 
-      batchUpdateItems: (ids, updates) =>
-        set((state) => ({
-          items: state.items.map((item) =>
-            ids.includes(item.id)
-              ? { ...item, ...updates, updatedAt: new Date().toISOString() }
-              : item
-          ),
-        })),
+      deleteItem: async (id) => {
+        try {
+          const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            set((state) => ({ items: state.items.filter((i) => i.id !== id) }));
+          }
+        } catch (err) {
+          console.error("Failed to delete item", err);
+        }
+      },
 
-      batchAddMessage: (newMessages) =>
-        set((state) => ({
-          messages: [...state.messages, ...newMessages],
-        })),
+      batchUpdateItems: async (ids, updates) => {
+        await Promise.all(ids.map((id) => get().updateItem(id, updates)));
+      },
+
+      // ------------------------
+      // User CRUD
+      // ------------------------
+      addUser: async (userData) => {
+        try {
+          const res = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData),
+          });
+          if (res.ok) {
+            const newUser = await res.json();
+            set((state) => ({ users: [newUser, ...state.users] }));
+          }
+        } catch (err) {
+          console.error("Failed to add user", err);
+        }
+      },
+
+      updateUser: async (id, updates) => {
+        try {
+          const res = await fetch(`/api/users/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updates),
+          });
+          if (res.ok) {
+            const updatedUser = await res.json();
+            set((state) => ({
+              users: state.users.map((u) => (u.id === id ? updatedUser : u)),
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to update user", err);
+        }
+      },
+
+      deleteUser: async (id) => {
+        try {
+          const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            set((state) => ({ users: state.users.filter((u) => u.id !== id) }));
+          }
+        } catch (err) {
+          console.error("Failed to delete user", err);
+        }
+      },
+
+      addClientHelper: async (clientData) => {
+        const data = { ...clientData, role: "CLIENT" };
+        return get().addUser(data as any);
+      },
+
+      // ------------------------
+      // Messages
+      // ------------------------
+      addMessage: async (messageData) => {
+        try {
+          const res = await fetch("/api/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(messageData),
+          });
+          if (res.ok) {
+            const newMessage = await res.json();
+            set((state) => ({ messages: [...state.messages, newMessage] }));
+          }
+        } catch (err) {
+          console.error("Failed to add message", err);
+        }
+      },
     }),
     {
-      name: "estate-app-storage",
-      version: 1,
-      migrate: (persistedState: any, version: number) => {
-        if (version === 0) {
-          return {
-            users: MOCK_USERS,
-            clients: MOCK_CLIENTS,
-            items: MOCK_ITEMS,
-            messages: MOCK_MESSAGES,
-            currentUser: persistedState.currentUser || null,
-          };
-        }
-        return persistedState;
-      },
-      partialize: (state) => ({
-        currentUser: state.currentUser,
-        users: state.users,
-        clients: state.clients,
-        items: state.items,
-        messages: state.messages,
-      }),
+      name: "estate-dbms-storage",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

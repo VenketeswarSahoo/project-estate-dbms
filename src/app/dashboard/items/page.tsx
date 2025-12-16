@@ -6,21 +6,27 @@ import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ItemsPage() {
-  const { items, clients, deleteItem } = useAppStore();
+  const { items, users, deleteItem, fetchUsers, fetchItems } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    fetchUsers();
+    fetchItems();
+  }, [fetchUsers, fetchItems]);
 
   if (!user) return null;
 
   const canEdit = user.role === "ADMIN" || user.role === "AGENT";
 
   let visibleItems = items;
-  let visibleClients = clients;
+  let visibleClients = users.filter((u) => u.role === "CLIENT");
 
   if (user.role === "EXECUTOR") {
-    const myClient = clients.find((c) => c.executorId === user.id);
+    const myClient = users.find((c) => c.executorId === user.id);
     if (myClient) {
       visibleClients = [myClient];
       visibleItems = items.filter((i) => i.clientId === myClient.id);
@@ -29,7 +35,7 @@ export default function ItemsPage() {
       visibleItems = [];
     }
   } else if (user.role === "BENEFICIARY") {
-    const myClient = clients.find((c) => c.beneficiaryIds.includes(user.id));
+    const myClient = users.find((c) => c.beneficiaryIds?.includes(user.id));
     if (myClient) {
       visibleClients = [myClient];
       visibleItems = items.filter((i) => i.clientId === myClient.id);

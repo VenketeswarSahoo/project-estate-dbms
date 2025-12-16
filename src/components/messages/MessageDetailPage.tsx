@@ -16,11 +16,15 @@ export default function MessageDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId");
-  const { messages, items, users, addMessage } = useAppStore();
+  const { messages, items, users, addMessage, fetchMessages } = useAppStore();
   const { user } = useAuth();
   const [replyContent, setReplyContent] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   // Track cursor position for inserting speech text
   const cursorRef = useRef<number>(0);

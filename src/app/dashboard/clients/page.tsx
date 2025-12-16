@@ -6,12 +6,18 @@ import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
+import { User } from "@/types";
 
 export default function ClientsPage() {
-  const { clients, users, deleteClient } = useAppStore();
+  const { users, fetchUsers, deleteUser } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   if (!user || user.role !== "ADMIN") {
     return (
@@ -21,8 +27,10 @@ export default function ClientsPage() {
     );
   }
 
-  const handleDelete = (id: string) => {
-    deleteClient(id);
+  const clients = users.filter((u) => u.role === "CLIENT");
+
+  const handleDelete = async (id: string) => {
+    await deleteUser(id);
     toast.success("Client deleted");
   };
 

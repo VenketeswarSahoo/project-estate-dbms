@@ -79,8 +79,8 @@ import { ItemGridView } from "./item-grid-view";
 type ViewMode = "list" | "grid";
 
 export function ItemTable({
-  items,
-  clients,
+  items = [],
+  clients = [],
   onDelete,
   canEdit,
 }: ItemTableProps) {
@@ -392,6 +392,7 @@ export function ItemTable({
                         onCheckedChange={(checked) =>
                           handleSelectAll(!!checked)
                         }
+                        className="mr-4"
                       />
                     </TableHead>
                     {showPhotos && (
@@ -472,6 +473,7 @@ export function ItemTable({
                               onCheckedChange={(checked) =>
                                 handleSelectOne(item.id, !!checked)
                               }
+                              className="mr-4"
                             />
                           </TableCell>
                           {showPhotos && (

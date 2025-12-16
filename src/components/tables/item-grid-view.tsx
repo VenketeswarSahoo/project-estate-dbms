@@ -6,6 +6,7 @@ import { Client, Item } from "@/types";
 import { BadgeCheck, Eye, Pencil, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ImageSlider } from "../slider/image-slider";
+import { useAuth } from "@/providers/auth";
 
 interface ItemGridViewProps {
   items: Item[];
@@ -25,16 +26,17 @@ export function ItemGridView({
   showPhotos,
 }: ItemGridViewProps) {
   const router = useRouter();
+  const { user } = useAuth();
 
   if (!showPhotos) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {items.length === 0 ? (
+        {items?.length === 0 ? (
           <div className="col-span-full text-center py-12 text-muted-foreground">
             No items found.
           </div>
         ) : (
-          items.map((item) => {
+          items?.map((item) => {
             const client = clients.find((c) => c.id === item.clientId);
             let statusNote = item.actionNote;
 
@@ -64,7 +66,7 @@ export function ItemGridView({
                 {/* Item Details */}
                 <div className="space-y-3 pt-2">
                   <div>
-                    <h3 className="font-semibold text-lg truncate">
+                    <h3 className="font-semibold text-lg flex-wrap">
                       {item.name}
                     </h3>
                     <p className="text-sm font-mono text-muted-foreground">
@@ -128,12 +130,12 @@ export function ItemGridView({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {items.length === 0 ? (
+      {items?.length === 0 ? (
         <div className="col-span-full text-center py-12 text-muted-foreground">
           No items found.
         </div>
       ) : (
-        items.map((item) => {
+        items?.map((item) => {
           const client = clients.find((c) => c.id === item.clientId);
           let statusNote = item.actionNote;
 
@@ -164,7 +166,7 @@ export function ItemGridView({
               {/* Item Details */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-semibold text-lg truncate">
+                  <h3 className="font-semibold text-lg flex-wrap">
                     {item.name}
                   </h3>
                   <p className="text-sm font-mono text-muted-foreground">
@@ -195,17 +197,19 @@ export function ItemGridView({
                 )}
 
                 <div className="pt-2 flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/dashboard/items/${item.id}`);
-                    }}
-                  >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
+                  {(user?.role === "ADMIN" || user?.role === "AGENT") && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/dashboard/items/${item.id}`);
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="w-full"

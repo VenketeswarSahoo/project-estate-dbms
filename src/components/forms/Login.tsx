@@ -20,19 +20,22 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      const success = login(email, password);
+    try {
+      const success = await login(email, password);
       if (!success) {
         toast.error("Invalid credentials");
         setLoading(false);
       } else {
         toast.success("Welcome back!");
       }
-    }, 500);
+    } catch (error) {
+      toast.error("An error occurred during login");
+      setLoading(false);
+    }
   };
 
   return (

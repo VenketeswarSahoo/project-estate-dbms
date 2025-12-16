@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { ItemForm } from "@/components/forms/ItemForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,8 +14,13 @@ import { v4 as uuidv4 } from "uuid";
 
 export default function NewItemPage() {
   const router = useRouter();
-  const { addItem, clients } = useAppStore();
+  const { addItem, users, fetchUsers } = useAppStore();
+  const clients = users.filter((u) => u.role === "CLIENT");
   const { user } = useAuth();
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   if (!user) return null;
 

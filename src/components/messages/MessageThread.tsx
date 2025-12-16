@@ -53,7 +53,7 @@ export const MessageThread = forwardRef<HTMLDivElement, MessageThreadProps>(
         </div>
 
         <div className="flex-1 overflow-hidden" ref={ref}>
-          <ScrollArea className="h-full p-4 bg-slate-50/50">
+          <ScrollArea className="h-full p-4">
             <div className="space-y-6 max-w-3xl mx-auto">
               {sortedMessages.map((message) => {
                 const isMe = message.senderId === currentUser.id;
@@ -78,7 +78,7 @@ export const MessageThread = forwardRef<HTMLDivElement, MessageThreadProps>(
                         "rounded-2xl px-4 py-2 text-sm shadow-sm",
                         isMe
                           ? "bg-primary text-primary-foreground rounded-tr-none"
-                          : "bg-white border rounded-tl-none"
+                          : "bg-white dark:bg-primary/10 border rounded-tl-none"
                       )}
                     >
                       {message.content}

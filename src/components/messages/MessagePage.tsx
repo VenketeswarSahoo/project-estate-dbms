@@ -14,15 +14,22 @@ import {
 import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function MessagesPage() {
-  const { messages, items, users } = useAppStore();
+  const { messages, items, users, fetchMessages } = useAppStore();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [userFilter, setUserFilter] = useState<string>("ALL");
 
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
   if (!user) return null;
+
+  console.log(user);
+  console.log(messages);
 
   // Filter messages for current user
   const myMessages = messages.filter(
@@ -58,7 +65,9 @@ export default function MessagesPage() {
     if (m.senderId !== user.id) myInterlocutorIds.add(m.senderId);
     if (m.receiverId !== user.id) myInterlocutorIds.add(m.receiverId);
   });
-  const myInterlocutors = users.filter((u) => myInterlocutorIds.has(u.id));
+  const myInterlocutors = (users || []).filter((u) =>
+    myInterlocutorIds.has(u.id)
+  );
 
   return (
     <div className="space-y-4 md:space-y-6 h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] flex flex-col">

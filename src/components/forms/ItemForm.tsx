@@ -26,6 +26,11 @@ import { Image as ImageIcon, Upload, X } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useAuth } from "@/providers/auth";
+import Image from "next/image";
+import { GalleryModal } from "../slider/gallery-modal";
+import { Checkbox } from "../ui/checkbox";
+import { useItemPhotosUpload } from "@/hooks/use-item-photos-upload";
 
 const itemSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -50,65 +55,54 @@ interface ItemFormProps {
   isReadOnly?: boolean;
 }
 
-import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
-import Image from "next/image";
-import { GalleryModal } from "../slider/gallery-modal";
-import { Checkbox } from "../ui/checkbox";
-
 export function ItemForm({
   initialData,
-  clients,
+  clients = [],
   onSubmit,
   isReadOnly = false,
 }: ItemFormProps) {
   const { user } = useAuth();
-  const { addClientBeneficiary, addClientDonationRecipient, addClientAction } =
-    useAppStore();
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
 
+  // Initialize the photo upload hook
+  const {
+    photoPreviews,
+    setPhotoPreviews,
+    isUploading,
+    uploadProgress,
+    handleMultiPhotoUpload,
+    handleCameraCaptureUpload,
+    removePhoto: hookRemovePhoto,
+  } = useItemPhotosUpload<ItemFormValues>({
+    onUploadSuccess: (urls) => {
+      console.log("Uploaded URLs:", urls);
+    },
+    onUploadError: (error) => {
+      console.error("Upload error:", error);
+    },
+    maxSizeKB: 500,
+    maxFiles: 20, // Optional: override default
+  });
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Updated handlePhotoUpload that uses the hook
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const currentPhotos = form.getValues("photos") || [];
-          form.setValue("photos", [...currentPhotos, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    handleMultiPhotoUpload(e, form.setValue, "photos");
   };
 
   const handleCameraCapture = (imageSrc: string) => {
-    const currentPhotos = form.getValues("photos") || [];
-    form.setValue("photos", [...currentPhotos, imageSrc]);
+    handleCameraCaptureUpload(imageSrc, form.setValue, "photos");
   };
 
   const removePhoto = (index: number) => {
-    const currentPhotos = form.getValues("photos") || [];
-    const newPhotos = [...currentPhotos];
-    newPhotos.splice(index, 1);
+    const newPhotos = hookRemovePhoto(index);
     form.setValue("photos", newPhotos);
   };
 
   const handleSubmit = (data: ItemFormValues) => {
-    if (data.clientId) {
-      if (data.action === "DISTRIBUTE" && data.actionNote) {
-        addClientBeneficiary(data.clientId, data.actionNote);
-      }
-      if (data.action === "DONATE" && data.actionNote) {
-        addClientDonationRecipient(data.clientId, data.actionNote);
-      }
-      if (data.action === "OTHER" && data.actionNote) {
-        addClientAction(data.clientId, data.actionNote);
-      }
-    }
     onSubmit(data);
   };
 
@@ -141,14 +135,18 @@ export function ItemForm({
         actionNote: initialData.actionNote,
         photos: initialData.photos,
       });
+      setPhotoPreviews(initialData.photos || []);
     }
-  }, [initialData, form]);
+  }, [initialData, form, setPhotoPreviews]);
 
   const openGallery = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
     setGalleryOpen(true);
     setCurrentIndex(index);
   };
+
+  // Get current photos from form to display
+  const currentPhotos = form.watch("photos") || [];
 
   return (
     <>
@@ -217,7 +215,7 @@ export function ItemForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {clients.map((client) => (
+                      {clients?.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
                         </SelectItem>
@@ -238,7 +236,7 @@ export function ItemForm({
                 <FormControl>
                   <Textarea
                     placeholder="Item description..."
-                    className="h-24 resize-none "
+                    className="h-24 resize-none"
                     {...field}
                     readOnly={effectiveReadOnly}
                   />
@@ -401,7 +399,7 @@ export function ItemForm({
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handlePhotoUpload}
-                disabled={effectiveReadOnly}
+                disabled={effectiveReadOnly || isUploading}
               />
 
               {!effectiveReadOnly && (
@@ -411,9 +409,16 @@ export function ItemForm({
                     variant="outline"
                     className="text-xs"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
                   >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Photos
+                    {isUploading ? (
+                      "Uploading..."
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Photos
+                      </>
+                    )}
                   </Button>
                   <CameraCapture onCapture={handleCameraCapture} />
                 </>
@@ -421,7 +426,7 @@ export function ItemForm({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              {form.watch("photos")?.map((photo, index) => (
+              {currentPhotos.map((photo, index) => (
                 <div
                   key={index}
                   className="relative group aspect-square rounded-md overflow-hidden border"
@@ -429,7 +434,7 @@ export function ItemForm({
                   <Image
                     src={photo}
                     alt={`Item photo ${index + 1}`}
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full cursor-pointer"
                     width={200}
                     height={200}
                     onClick={(e) => openGallery(e, index)}
@@ -440,15 +445,15 @@ export function ItemForm({
                       variant="destructive"
                       size="icon"
                       onClick={() => removePhoto(index)}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 transition-opacity"
+                      disabled={isUploading}
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               ))}
-              {(!form.watch("photos") ||
-                form.watch("photos")?.length === 0) && (
+              {currentPhotos.length === 0 && (
                 <div className="col-span-2 md:col-span-4 flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-md text-muted-foreground">
                   <ImageIcon className="h-8 w-8 mb-2" />
                   <p>No photos added yet</p>
@@ -458,12 +463,16 @@ export function ItemForm({
           </div>
 
           <div className="flex justify-end">
-            {!effectiveReadOnly && <Button type="submit">Save Changes</Button>}
+            {!effectiveReadOnly && (
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? "Saving..." : "Save Changes"}
+              </Button>
+            )}
           </div>
         </form>
       </Form>
       <GalleryModal
-        images={form.watch("photos") || []}
+        images={currentPhotos}
         title={form.watch("name")}
         isOpen={galleryOpen}
         onClose={() => setGalleryOpen(false)}

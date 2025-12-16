@@ -32,20 +32,20 @@ interface ComposeMessageDialogProps {
 }
 
 export function ComposeMessageDialog({
-  users,
-  items,
+  users = [],
+  items = [],
   onOpenChange,
 }: ComposeMessageDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const { addMessage, clients } = useAppStore();
+  const { addMessage } = useAppStore();
 
   const [receiverId, setReceiverId] = useState("");
   const [itemId, setItemId] = useState("");
   const [content, setContent] = useState("");
   const [itemSearch, setItemSearch] = useState("");
 
-  const filteredItems = items.filter(
+  const filteredItems = (items || []).filter(
     (item) =>
       item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
       item.uid.toLowerCase().includes(itemSearch.toLowerCase())
@@ -79,7 +79,10 @@ export function ComposeMessageDialog({
     setItemSearch("");
   };
 
-  const potentialReceivers = users.filter((u) => {
+  // Get clients from users array (users with role CLIENT)
+  const clients = (users || []).filter((u) => u.role === "CLIENT");
+
+  const potentialReceivers = (users || []).filter((u) => {
     if (u.id === user?.id) return false;
 
     // RBAC Logic
@@ -92,15 +95,17 @@ export function ComposeMessageDialog({
         // Can only message Agents, or Beneficiaries of Clients they manage
         if (u.role === "AGENT") return true;
         if (u.role === "BENEFICIARY") {
-          const myClients = clients.filter((c) => c.executorId === user.id);
-          return myClients.some((c) => c.beneficiaryIds.includes(u.id));
+          const myClients = clients.filter(
+            (c: User) => c.executorId === user.id
+          );
+          return myClients.some((c: User) => c.beneficiaryIds?.includes(u.id));
         }
         return false;
       case "BENEFICIARY":
         // Can only message the Executor of their Client
         if (u.role === "EXECUTOR") {
-          const myClient = clients.find((c) =>
-            c.beneficiaryIds.includes(user.id)
+          const myClient = clients.find((c: User) =>
+            c.beneficiaryIds?.includes(user.id)
           );
           return myClient?.executorId === u.id;
         }

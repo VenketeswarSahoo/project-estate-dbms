@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppStore } from "@/store/store";
 import { useAuth } from "@/providers/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,10 +19,14 @@ import { v4 as uuidv4 } from "uuid";
 
 export function MessageCenter() {
   const { user } = useAuth();
-  const { messages, users, items, addMessage, markMessageRead } = useAppStore();
+  const { messages, users, items, addMessage, fetchMessages } = useAppStore();
   const [selectedRecipient, setSelectedRecipient] = useState<string>("");
   const [selectedItem, setSelectedItem] = useState<string>("general");
   const [messageContent, setMessageContent] = useState("");
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   if (!user) return null;
 
@@ -66,7 +70,6 @@ export function MessageCenter() {
     }
 
     addMessage({
-      id: uuidv4(),
       senderId: user.id,
       receiverId: selectedRecipient,
       itemId: selectedItem,

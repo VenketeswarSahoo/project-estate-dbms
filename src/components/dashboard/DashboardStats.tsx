@@ -14,12 +14,12 @@ import { useAuth } from "@/providers/auth";
 
 export function DashboardStats() {
   const { user } = useAuth();
-  const { clients, items, messages } = useAppStore();
+  const { users, items, messages } = useAppStore();
 
   if (!user) return null;
 
   // 1. Calculate Stats
-  const totalClients = clients.length;
+  const totalClients = users.filter((u) => u.role === "CLIENT").length;
 
   // Filter messages
   const myGenericMessages = messages.filter(
@@ -29,17 +29,17 @@ export function DashboardStats() {
   // Filter Items based on Role
   let myItems = items;
   if (user.role === "EXECUTOR") {
-    const myClientIds = clients
-      .filter((c) => c.executorId === user.id)
-      .map((c) => c.id);
+    const myClientIds = users
+      .filter((u) => u.executorId === user.id)
+      .map((u) => u.id);
     myItems = items.filter((i) => myClientIds.includes(i.clientId));
   } else if (user.role === "BENEFICIARY") {
     // Items distributed to this beneficiary OR items in clients they are part of?
     // Usually beneficiaries only care about what they are receiving or what is in the estate.
     // Let's show items from their Estate for visibility, but highlight their distributions.
-    const myClientIds = clients
-      .filter((c) => c.beneficiaryIds.includes(user.id))
-      .map((c) => c.id);
+    const myClientIds = users
+      .filter((u) => u.beneficiaryIds?.includes(user.id))
+      .map((u) => u.id);
     myItems = items.filter((i) => myClientIds.includes(i.clientId));
   }
 
@@ -65,7 +65,7 @@ export function DashboardStats() {
           <CardContent>
             <div className="text-2xl font-bold">
               {user.role === "EXECUTOR"
-                ? clients.filter((c) => c.executorId === user.id).length
+                ? users.filter((u) => u.executorId === user.id).length
                 : totalClients}
             </div>
           </CardContent>

@@ -6,13 +6,18 @@ import { useAuth } from "@/providers/auth";
 import { useAppStore } from "@/store/store";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 export default function NewClientPage() {
-  const { addClient, users } = useAppStore();
+  const { addUser, users, fetchUsers } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   if (!user || user.role !== "ADMIN") {
     return <div>Access Denied</div>;
@@ -23,12 +28,8 @@ export default function NewClientPage() {
       id: `client-${uuidv4()}`,
       ...data,
       createdAt: new Date().toISOString(),
-      beneficiaryIds: [],
-      savedBeneficiaries: [],
-      savedDonationRecipients: [],
-      savedActions: [],
     };
-    addClient(newClient);
+    addUser({ ...newClient, role: "CLIENT" });
     toast.success("Client created successfully");
     router.push("/dashboard/clients");
   };
