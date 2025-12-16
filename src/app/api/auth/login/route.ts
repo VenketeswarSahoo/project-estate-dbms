@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       name: "auth_token",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "strict",
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
