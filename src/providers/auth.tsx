@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password?: string) => {
     const success = await storeLogin(email, password);
     if (success) {
-      router.push("/dashboard");
+      router.push("/dashboard/items");
     }
     return success;
   };
