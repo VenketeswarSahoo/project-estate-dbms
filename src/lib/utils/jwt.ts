@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey_estate";
+const JWT_SECRET = "supersecretkey_estate";
 const JWT_EXPIRES_IN = "7d";
 
 export interface DecodedToken extends JwtPayload {

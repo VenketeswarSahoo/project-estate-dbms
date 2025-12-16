@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI =
+  "mongodb+srv://sahoovenketeswar_db_user:estate_DB%40404%23@cluster0.kvynugm.mongodb.net/estate_db";
 
 if (!MONGODB_URI) {
   throw new Error(
