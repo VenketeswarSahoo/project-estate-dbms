@@ -1,15 +1,18 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppStore } from "@/store/store";
-import { useAuth } from "@/providers/auth";
-import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useItems } from "@/lib/hooks/useItems";
+import { useUsers } from "@/lib/hooks/useUsers";
+import { useAuth } from "@/providers/auth";
+import { Item, User } from "@/types";
+import { formatDistanceToNow } from "date-fns";
 
 export function RecentItemsList() {
   const { user } = useAuth();
-  const { items, users } = useAppStore();
+
+  const { data: items = [], isLoading: isItemsLoading } = useItems();
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
 
   if (!user) return null;
 
@@ -17,14 +20,14 @@ export function RecentItemsList() {
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myUserIds = users
-      .filter((c) => c.executorId === user.id)
-      .map((c) => c.id);
-    myItems = items.filter((i) => myUserIds.includes(i.clientId));
+      .filter((c: User) => c.executorId === user.id)
+      .map((c: User) => c.id);
+    myItems = items.filter((i: Item) => myUserIds.includes(i.clientId));
   } else if (user.role === "BENEFICIARY") {
     const myUserIds = users
-      .filter((c) => c.beneficiaryIds?.includes(user.id))
-      .map((c) => c.id);
-    myItems = items.filter((i) => myUserIds.includes(i.clientId));
+      .filter((c: User) => c.beneficiaryIds?.includes(user.id))
+      .map((c: User) => c.id);
+    myItems = items.filter((i: Item) => myUserIds.includes(i.clientId));
   }
 
   const recentItems = [...myItems]

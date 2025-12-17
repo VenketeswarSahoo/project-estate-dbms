@@ -46,6 +46,7 @@ interface ClientFormProps {
   users: User[];
   onSubmit: (data: ClientFormValues) => void;
   isReadOnly?: boolean;
+  loading?: boolean;
 }
 
 export function ClientForm({
@@ -53,12 +54,10 @@ export function ClientForm({
   users,
   onSubmit,
   isReadOnly = false,
+  loading = false,
 }: ClientFormProps) {
   const executors = users.filter((u) => u.role === "EXECUTOR");
   const beneficiaries = users.filter((u) => u.role === "BENEFICIARY");
-
-  console.log(beneficiaries);
-  console.log(initialData);
 
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
@@ -104,6 +103,7 @@ export function ClientForm({
                     placeholder="The Smith Estate"
                     {...field}
                     readOnly={isReadOnly}
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -121,6 +121,7 @@ export function ClientForm({
                     placeholder="client@estate.com"
                     {...field}
                     readOnly={isReadOnly}
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -138,6 +139,7 @@ export function ClientForm({
                     placeholder="123 Maple Ave..."
                     {...field}
                     readOnly={isReadOnly}
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -154,7 +156,7 @@ export function ClientForm({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={isReadOnly}
+                  disabled={isReadOnly || loading}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -187,7 +189,7 @@ export function ClientForm({
                         variant="outline"
                         role="combobox"
                         className="w-full justify-between"
-                        disabled={isReadOnly}
+                        disabled={isReadOnly || loading}
                         type="button"
                       >
                         {field.value && field.value.length > 0
@@ -229,13 +231,13 @@ export function ClientForm({
                                     );
                                   }
                                 }}
-                                disabled={isReadOnly}
+                                disabled={isReadOnly || loading}
                               />
                               <label
                                 htmlFor={beneficiary.id}
                                 className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                                 onClick={() => {
-                                  if (isReadOnly) return;
+                                  if (isReadOnly || loading) return;
                                   const currentValue = field.value || [];
                                   const isSelected = currentValue.includes(
                                     beneficiary.id
@@ -270,7 +272,11 @@ export function ClientForm({
         </div>
 
         <div className="flex justify-end">
-          {!isReadOnly && <Button type="submit">Save Client</Button>}
+          {!isReadOnly && (
+            <Button type="submit" loading={loading} disabled={loading}>
+              Save Client
+            </Button>
+          )}
         </div>
       </form>
     </Form>

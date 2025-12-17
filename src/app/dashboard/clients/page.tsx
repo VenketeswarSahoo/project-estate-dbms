@@ -1,23 +1,39 @@
 "use client";
 
 import { ClientTable } from "@/components/tables/ClientTable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useDeleteUser, useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
 import { User } from "@/types";
+import { Loader, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 export default function ClientsPage() {
-  const { users, fetchUsers, deleteUser } = useAppStore();
-  const { user } = useAuth();
   const router = useRouter();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<User | null>(null);
+
+  // React Query hooks
+  const { data: users = [], isLoading } = useUsers();
+  const deleteMutation = useDeleteUser();
+
+  // Filter clients
+  const clients = users.filter((u: User) => u.role === "CLIENT");
 
   if (!user || user.role !== "ADMIN") {
     return (
@@ -27,23 +43,106 @@ export default function ClientsPage() {
     );
   }
 
-  const clients = users.filter((u) => u.role === "CLIENT");
+  const handleAction = useCallback(
+    (client: User, action: "edit" | "delete" | "view") => {
+      if (action === "edit") {
+        router.push(`/dashboard/clients/${client.id}`);
+      } else {
+        setClientToDelete(client);
+        setDeleteDialogOpen(true);
+      }
+    },
+    [router]
+  );
 
-  const handleDelete = async (id: string) => {
-    await deleteUser(id);
-    toast.success("Client deleted");
+  const handleDeleteConfirm = async () => {
+    if (clientToDelete) {
+      await deleteMutation.mutateAsync(clientToDelete.id, {
+        onSuccess: () => {
+          toast.success("Client deleted");
+          setDeleteDialogOpen(false);
+          setClientToDelete(null);
+        },
+        onError: () => {
+          toast.error("Delete failed");
+        },
+      });
+    }
   };
+
+  // Keyboard shortcut for Enter key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (
+        deleteDialogOpen &&
+        !deleteMutation.isPending &&
+        event.key === "Enter"
+      ) {
+        event.preventDefault();
+        handleDeleteConfirm();
+      }
+    },
+    [deleteDialogOpen, deleteMutation.isPending]
+  );
+
+  // Add event listener for keyboard shortcuts
+  useState(() => {
+    if (deleteDialogOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Clients</h2>
-        <Button onClick={() => router.push("/dashboard/clients/new")}>
+        <Button
+          onClick={() => router.push("/dashboard/clients/new")}
+          disabled={isLoading}
+        >
           <Plus className="mr-2 h-4 w-4" /> Add Client
         </Button>
       </div>
 
-      <ClientTable clients={clients} users={users} onDelete={handleDelete} />
+      <ClientTable clients={clients} users={users} onAction={handleAction} />
+
+      {/* Delete Dialog - Now outside DataTable */}
+      <AlertDialog open={deleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">"{clientToDelete?.name}"</span>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/80 flex items-center gap-2"
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

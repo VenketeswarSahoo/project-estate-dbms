@@ -13,7 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAppStore } from "@/store/store";
+import { useItems } from "@/lib/hooks/useItems";
+import { Item } from "@/types";
 import { Camera, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -29,12 +30,12 @@ export function MobileScanDialog({
   const router = useRouter();
   const [manualInput, setManualInput] = useState("");
 
-  const { items } = useAppStore();
+  const { data: items } = useItems();
 
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
     onOpenChange?.(false);
-    const item = items.find((item) => item.barcode === decodedText);
+    const item = items.find((item: Item) => item.barcode === decodedText);
 
     if (item) {
       router.push(`/dashboard/items/${item.id}`);
@@ -54,7 +55,9 @@ export function MobileScanDialog({
       return;
     }
     onOpenChange?.(false);
-    const item = items.find((item) => item.barcode === manualInput.trim());
+    const item = items.find(
+      (item: Item) => item.barcode === manualInput.trim()
+    );
     router.push(`/dashboard/items/${manualInput.trim()}`);
   };
 

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { BarcodeScanner } from "@/components/common/barcode-scanner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,28 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
+import { useItems } from "@/lib/hooks/useItems";
+import { Item } from "@/types";
 import { Camera, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import { BarcodeScanner } from "@/components/common/barcode-scanner";
-import { useAppStore } from "@/store/store";
 
 export function ScanDialog() {
   const router = useRouter();
   const [manualInput, setManualInput] = useState("");
   const [open, setOpen] = useState(false);
 
-  const { items } = useAppStore();
+  const { data: items } = useItems();
 
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
     console.log(decodedText);
     setOpen(false);
-    const item = items.find((item) => item.barcode === decodedText);
+    const item = items.find((item: Item) => item.barcode === decodedText);
 
     if (item) {
       router.push(`/dashboard/items/${item.id}`);
@@ -51,7 +52,9 @@ export function ScanDialog() {
       return;
     }
     setOpen(false);
-    const item = items.find((item) => item.barcode === manualInput.trim());
+    const item = items.find(
+      (item: Item) => item.barcode === manualInput.trim()
+    );
     router.push(`/dashboard/items/${item?.id}`);
   };
 

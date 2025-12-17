@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { User, Client, Item, Message } from "@/types";
+import { Client, Item, Message, User } from "@/types";
 import { jwtDecode } from "jwt-decode";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface AppState {
   token: string | null;
@@ -9,6 +9,14 @@ interface AppState {
   users: User[];
   items: Item[];
   messages: Message[];
+
+  loading: {
+    users: boolean;
+    items: boolean;
+    messages: boolean;
+    auth: boolean;
+    [key: string]: boolean;
+  };
 
   fetchUsers: (role?: string) => Promise<void>;
   fetchItems: (clientId?: string) => Promise<void>;
@@ -51,27 +59,41 @@ export const useAppStore = create<AppState>()(
       items: [],
       messages: [],
 
+      loading: {
+        users: false,
+        items: false,
+        messages: false,
+        auth: false,
+      },
+
       // ------------------------
       // Auth
       // ------------------------
       login: async (email, password) => {
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+        set((state) => ({ loading: { ...state.loading, auth: true } }));
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
 
-        const data = await res.json();
+          const data = await res.json();
 
-        if (res.ok && data.success && data.token) {
-          // Decode JWT client-side
-          const decoded: CurrentUser = jwtDecode(data.token);
-          set({ currentUser: decoded, token: data.token }); // ✅ populate user directly
-          return true;
+          if (res.ok && data.success && data.token) {
+            const decoded: CurrentUser = jwtDecode(data.token);
+            set({ currentUser: decoded, token: data.token });
+            return true;
+          }
+
+          console.error("Login failed:", data.error);
+          return false;
+        } catch (error) {
+          console.error("Login error:", error);
+          return false;
+        } finally {
+          set((state) => ({ loading: { ...state.loading, auth: false } }));
         }
-
-        console.error("Login failed:", data.error);
-        return false;
       },
 
       logout: async () => {
@@ -89,6 +111,7 @@ export const useAppStore = create<AppState>()(
       // Fetch
       // ------------------------
       fetchUsers: async (role) => {
+        set((state) => ({ loading: { ...state.loading, users: true } }));
         try {
           const query = role ? `?role=${role}` : "";
           const res = await fetch(`/api/users${query}`);
@@ -98,10 +121,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to fetch users", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, users: false } }));
         }
       },
 
       fetchItems: async (clientId) => {
+        set((state) => ({ loading: { ...state.loading, items: true } }));
         try {
           const query = clientId ? `?clientId=${clientId}` : "";
           const res = await fetch(`/api/items${query}`);
@@ -111,10 +137,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to fetch items", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, items: false } }));
         }
       },
 
       fetchMessages: async (filters) => {
+        set((state) => ({ loading: { ...state.loading, messages: true } }));
         try {
           const queryParams = new URLSearchParams(filters).toString();
           const query = queryParams ? `?${queryParams}` : "";
@@ -125,6 +154,8 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to fetch messages", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, messages: false } }));
         }
       },
 
@@ -132,6 +163,7 @@ export const useAppStore = create<AppState>()(
       // Item CRUD
       // ------------------------
       addItem: async (itemData) => {
+        set((state) => ({ loading: { ...state.loading, items: true } }));
         try {
           const res = await fetch("/api/items", {
             method: "POST",
@@ -144,10 +176,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to add item", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, items: false } }));
         }
       },
 
       updateItem: async (id, updates) => {
+        set((state) => ({ loading: { ...state.loading, items: true } }));
         try {
           const res = await fetch(`/api/items/${id}`, {
             method: "PUT",
@@ -162,10 +197,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to update item", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, items: false } }));
         }
       },
 
       deleteItem: async (id) => {
+        set((state) => ({ loading: { ...state.loading, items: true } }));
         try {
           const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
           if (res.ok) {
@@ -173,6 +211,8 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to delete item", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, items: false } }));
         }
       },
 
@@ -184,6 +224,7 @@ export const useAppStore = create<AppState>()(
       // User CRUD
       // ------------------------
       addUser: async (userData) => {
+        set((state) => ({ loading: { ...state.loading, users: true } }));
         try {
           const res = await fetch("/api/users", {
             method: "POST",
@@ -196,10 +237,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to add user", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, users: false } }));
         }
       },
 
       updateUser: async (id, updates) => {
+        set((state) => ({ loading: { ...state.loading, users: true } }));
         try {
           const res = await fetch(`/api/users/${id}`, {
             method: "PUT",
@@ -214,10 +258,13 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to update user", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, users: false } }));
         }
       },
 
       deleteUser: async (id) => {
+        set((state) => ({ loading: { ...state.loading, users: true } }));
         try {
           const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
           if (res.ok) {
@@ -225,6 +272,8 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to delete user", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, users: false } }));
         }
       },
 
@@ -237,6 +286,7 @@ export const useAppStore = create<AppState>()(
       // Messages
       // ------------------------
       addMessage: async (messageData) => {
+        set((state) => ({ loading: { ...state.loading, messages: true } }));
         try {
           const res = await fetch("/api/messages", {
             method: "POST",
@@ -249,6 +299,8 @@ export const useAppStore = create<AppState>()(
           }
         } catch (err) {
           console.error("Failed to add message", err);
+        } finally {
+          set((state) => ({ loading: { ...state.loading, messages: false } }));
         }
       },
     }),

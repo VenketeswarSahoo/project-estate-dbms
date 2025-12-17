@@ -8,54 +8,50 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TrendingDown, TrendingUp } from "lucide-react";
-import {
-  Users,
-  Package,
-  MessageSquare,
-  ArrowRightLeft,
-  Gift,
-} from "lucide-react";
-import { useAppStore } from "@/store/store";
+import { useItems } from "@/lib/hooks/useItems";
+import { useMessages } from "@/lib/hooks/useMessages";
+import { useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
+import { Item, Message, User } from "@/types";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 export function SectionCards() {
   const { user } = useAuth();
-  const { users, items, messages } = useAppStore();
+
+  const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
+  const { data: items = [], isLoading: isItemsLoading } = useItems();
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
 
   if (!user) return null;
 
   // 1. Calculate Stats
-  const clients = users.filter((u) => u.role === "CLIENT");
+  const clients = users.filter((u: User) => u.role === "CLIENT");
   const totalClients = clients.length;
 
   // Filter messages
   const myGenericMessages = messages.filter(
-    (m) => m.receiverId === user.id && !m.read
+    (m: Message) => m.receiverId === user.id && !m.read
   );
 
   // Filter Items based on Role
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myClientIds = clients
-      .filter((c) => c.executorId === user.id)
-      .map((c) => c.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+      .filter((c: User) => c.executorId === user.id)
+      .map((c: User) => c.id);
+    myItems = items.filter((i: Item) => myClientIds.includes(i.clientId));
   } else if (user.role === "BENEFICIARY") {
-    // Items distributed to this beneficiary OR items in clients they are part of?
-    // Usually beneficiaries only care about what they are receiving or what is in the estate.
-    // Let's show items from their Estate for visibility, but highlight their distributions.
     const myClientIds = clients
-      .filter((c) => c.beneficiaryIds?.includes(user.id))
-      .map((c) => c.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+      .filter((c: User) => c.beneficiaryIds?.includes(user.id))
+      .map((c: User) => c.id);
+    myItems = items.filter((i: Item) => myClientIds.includes(i.clientId));
   }
 
   const lowStockItems = myItems.length; // Just total items for now
   const pendingDistributions = myItems.filter(
-    (i) => i.action === "DISTRIBUTE"
+    (i: Item) => i.action === "DISTRIBUTE"
   ).length;
-  const itemsForSale = myItems.filter((i) => i.action === "SALE").length;
+  const itemsForSale = myItems.filter((i: Item) => i.action === "SALE").length;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -69,7 +65,7 @@ export function SectionCards() {
             </CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
               {user.role === "EXECUTOR"
-                ? clients.filter((c) => c.executorId === user.id).length
+                ? clients.filter((c: User) => c.executorId === user.id).length
                 : totalClients}
             </CardTitle>
             <CardAction>

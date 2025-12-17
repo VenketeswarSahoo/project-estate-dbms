@@ -1,328 +1,174 @@
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { User } from "@/types";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
+  ArrowUpDown,
   MapPin,
   Pencil,
-  User as Person,
-  Search,
   Settings,
   Trash2,
   Type,
+  User as UserIcon,
 } from "lucide-react";
-import { User, Client } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Card } from "../ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Input } from "../ui/input";
+import * as React from "react";
+import { DataTable } from "./DataTable";
 
 interface ClientTableProps {
   clients: User[];
   users: User[];
-  onDelete: (id: string) => void;
+  onAction: (client: User, action: "edit" | "delete" | "view") => void;
 }
 
-export function ClientTable({ clients, users, onDelete }: ClientTableProps) {
-  const router = useRouter();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleDeleteClick = (client: Client) => {
-    setClientToDelete(client);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (clientToDelete) {
-      onDelete(clientToDelete.id);
-      setDeleteDialogOpen(false);
-      setClientToDelete(null);
-    }
-  };
-
+// Define columns for TanStack Table
+const getColumns = (
+  router: ReturnType<typeof useRouter>,
+  users: User[],
+  onEdit: (client: User) => void,
+  onDeleteClick: (client: User) => void
+): ColumnDef<User>[] => {
   const getUserName = (id: string) => {
     return users.find((u) => u.id === id)?.name || "Unknown";
   };
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  return [
+    {
+      accessorKey: "name",
+      enableSorting: true,
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="cursor-pointer font-bold"
+          >
+            <div className="flex items-center">
+              <Type className="mr-2 h-4 w-4" />
+              Name
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </div>
+          </div>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "address",
+      header: () => (
+        <div className="flex items-center font-bold">
+          <MapPin className="mr-2 h-4 w-4" />
+          Address
+        </div>
+      ),
+      cell: ({ row }) => <div>{row.getValue("address")}</div>,
+    },
+    {
+      accessorKey: "executorId",
+      header: () => (
+        <div className="flex items-center font-bold">
+          <UserIcon className="mr-2 h-4 w-4" />
+          Executor
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Badge variant="secondary">
+          {row.getValue("executorId")
+            ? getUserName(row.getValue("executorId"))
+            : "Unassigned"}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => (
+        <div className="flex items-center justify-center font-bold">
+          <Settings className="mr-2 h-4 w-4" />
+          Action
+        </div>
+      ),
+      cell: ({ row }) => {
+        const client = row.original;
 
-  // Filter items
-  const filteredItems = clients.filter((client) => {
-    const term = searchQuery.toLowerCase();
-    const matchesSearch =
-      client.name.toLowerCase().includes(term) ||
-      client.address?.toLowerCase().includes(term);
+        return (
+          <div
+            className="flex justify-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => router.push(`/dashboard/clients/${client.id}`)}
+                >
+                  <Pencil className="h-4 w-4 text-green-700" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit Client</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onDeleteClick(client)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete Client</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+  ];
+};
 
-    return matchesSearch;
-  });
+export function ClientTable({ clients, users, onAction }: ClientTableProps) {
+  const router = useRouter();
 
-  // Calculate pagination values for list view
-  const totalItems = filteredItems.length;
-  const totalPages = Math.ceil(totalItems / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
-  const paginatedItems = filteredItems.slice(startIndex, endIndex);
+  // Create handlers that use the onAction prop
+  const handleEdit = React.useCallback(
+    (client: User) => {
+      onAction(client, "edit");
+    },
+    [onAction]
+  );
 
-  // Handle page change
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
+  const handleDeleteClick = React.useCallback(
+    (client: User) => {
+      onAction(client, "delete");
+    },
+    [onAction]
+  );
 
-  // Handle rows per page change
-  const handleRowsPerPageChange = (value: string) => {
-    const newRowsPerPage = parseInt(value);
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-  };
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  const columns = React.useMemo(
+    () => getColumns(router, users, handleEdit, handleDeleteClick),
+    [router, users, handleEdit, handleDeleteClick]
+  );
 
   return (
-    <>
-      <div className="relative w-full lg:w-72">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search client name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-8"
-        />
-      </div>
-      <Card className="p-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className=":border-border [&>:not(:last-child)]:border-r">
-              <TableHead>
-                <div className="flex items-center font-bold">
-                  <Type className="mr-2 h-4 w-4" />
-                  Name
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center font-bold">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Address
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center font-bold">
-                  <Person className="mr-2 h-4 w-4" />
-                  Executor
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center justify-center font-bold">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Action
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedItems.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center h-24 text-muted-foreground"
-                >
-                  No clients found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedItems.map((client) => (
-                <TableRow
-                  key={client.id}
-                  className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r"
-                >
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.address}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {client.executorId
-                        ? getUserName(client.executorId)
-                        : "Unassigned"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div
-                      className="flex justify-center gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() =>
-                              router.push(`/dashboard/clients/${client.id}`)
-                            }
-                          >
-                            <Pencil className="h-4 w-4 text-green-700" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Edit Client</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDeleteClick(client)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete Client</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-
-      {/* Move AlertDialog outside of the table/rows */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Client</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{clientToDelete?.name}"? This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/80"
-              onClick={handleDeleteConfirm}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 py-2">
-        <div className="text-sm text-muted-foreground order-2 lg:order-1">
-          Showing {startIndex + 1} to {endIndex} of {totalItems} items
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto order-1 lg:order-2">
-          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              Rows per page
-            </span>
-            <Select
-              value={rowsPerPage.toString()}
-              onValueChange={handleRowsPerPageChange}
-            >
-              <SelectTrigger className="w-[70px] h-8">
-                <SelectValue placeholder={rowsPerPage} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center gap-1 mx-1 text-sm">
-              <span className="text-muted-foreground">Page</span>
-              <span className="font-medium min-w-[1.5rem] text-center">
-                {currentPage}
-              </span>
-              <span className="text-muted-foreground">of {totalPages}</span>
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
+    <DataTable
+      data={clients}
+      columns={columns}
+      onAction={onAction}
+      searchPlaceholder="Search client name or address..."
+      entityName="Client"
+    />
   );
 }

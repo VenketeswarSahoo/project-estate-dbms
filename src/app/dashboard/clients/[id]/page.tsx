@@ -2,8 +2,8 @@
 
 import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
+import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
 import { Client } from "@/types";
 import { ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -11,45 +11,87 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function EditClientPage() {
-  const { users, updateUser, fetchUsers } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
+
+  // React Query hooks
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
+  const userMutation = useUserMutation();
+
   const [client, setClient] = useState<Client | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  useEffect(() => {
-    // Clients are just users with role 'CLIENT' or we just find by ID
-    const found = users?.find((c) => c.id === params.id && c.role === "CLIENT");
+    // Find client from users data
+    const found = users?.find(
+      (c: any) => c.id === params.id && c.role === "CLIENT"
+    );
     if (found) {
-      setClient(found as Client); // Cast because User with CLIENT role is Client
+      setClient(found as Client);
     }
+    setIsLoading(false);
   }, [params.id, users]);
 
   if (!user || user.role !== "ADMIN") {
-    return <div>Access Denied</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold">Access Denied</div>
+      </div>
+    );
   }
 
-  if (!client) return <div>Loading...</div>;
+  const handleSubmit = async (formData: any) => {
+    if (!client) return;
 
-  const handleSubmit = (data: any) => {
-    // console.log("Updating client with data:", data); // Debug logging
-    updateUser(client.id, data);
-    toast.success("Client updated successfully");
-    router.push("/dashboard/clients");
+    await userMutation.mutateAsync(
+      {
+        id: client.id,
+        ...formData,
+        role: "CLIENT" as const,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Client updated successfully");
+          router.push("/dashboard/clients");
+        },
+        onError: () => {
+          toast.error("Failed to update client");
+        },
+      }
+    );
   };
 
+  if (isLoading || isUsersLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!client) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold">Client not found</div>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => router.push("/dashboard/clients")}
+        >
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-2xl mx-auto lg:mt-10">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
           </Button>
-
           <h2 className="text-2xl font-bold tracking-tight">Edit Client</h2>
         </div>
         <p className="text-muted-foreground">Update client details.</p>
@@ -60,6 +102,7 @@ export default function EditClientPage() {
           initialData={client}
           users={users}
           onSubmit={handleSubmit}
+          loading={userMutation.isPending}
         />
       </div>
     </div>

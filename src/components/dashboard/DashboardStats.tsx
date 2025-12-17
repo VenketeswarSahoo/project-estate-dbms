@@ -1,57 +1,52 @@
 "use client";
 
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Users,
-  Package,
-  MessageSquare,
-  ArrowRightLeft,
-  Gift,
-} from "lucide-react";
-import { useAppStore } from "@/store/store";
+import { useItems } from "@/lib/hooks/useItems";
+import { useMessages } from "@/lib/hooks/useMessages";
+import { useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
+import { Item, Message, User } from "@/types";
+import { ArrowRightLeft, MessageSquare, Package, Users } from "lucide-react";
 
 export function DashboardStats() {
   const { user } = useAuth();
-  const { users, items, messages } = useAppStore();
+
+  const { data: items } = useItems();
+  const { data: users } = useUsers();
+  const { data: messages } = useMessages();
 
   if (!user) return null;
 
   // 1. Calculate Stats
-  const totalClients = users.filter((u) => u.role === "CLIENT").length;
+  const totalClients = users.filter((u: User) => u.role === "CLIENT").length;
 
   // Filter messages
   const myGenericMessages = messages.filter(
-    (m) => m.receiverId === user.id && !m.read
+    (m: Message) => m.receiverId === user.id && !m.read
   );
 
   // Filter Items based on Role
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myClientIds = users
-      .filter((u) => u.executorId === user.id)
-      .map((u) => u.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+      .filter((u: User) => u.executorId === user.id)
+      .map((u: User) => u.id);
+    myItems = items.filter((i: Item) => myClientIds.includes(i.clientId));
   } else if (user.role === "BENEFICIARY") {
-    // Items distributed to this beneficiary OR items in clients they are part of?
-    // Usually beneficiaries only care about what they are receiving or what is in the estate.
-    // Let's show items from their Estate for visibility, but highlight their distributions.
     const myClientIds = users
-      .filter((u) => u.beneficiaryIds?.includes(user.id))
-      .map((u) => u.id);
-    myItems = items.filter((i) => myClientIds.includes(i.clientId));
+      .filter((u: User) => u.beneficiaryIds?.includes(user.id))
+      .map((u: User) => u.id);
+    myItems = items.filter((i: Item) => myClientIds.includes(i.clientId));
   }
 
-  const lowStockItems = myItems.length; // Just total items for now
+  const lowStockItems = myItems.length;
   const pendingDistributions = myItems.filter(
-    (i) => i.action === "DISTRIBUTE"
+    (i: Item) => i.action === "DISTRIBUTE"
   ).length;
-  const itemsForSale = myItems.filter((i) => i.action === "SALE").length;
+  const itemsForSale = myItems.filter((i: Item) => i.action === "SALE").length;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* Total Clients (Admin/Agent/Executor) */}
       {(user.role === "ADMIN" ||
         user.role === "AGENT" ||
         user.role === "EXECUTOR") && (
@@ -65,7 +60,7 @@ export function DashboardStats() {
           <CardContent>
             <div className="text-2xl font-bold">
               {user.role === "EXECUTOR"
-                ? users.filter((u) => u.executorId === user.id).length
+                ? users.filter((u: User) => u.executorId === user.id).length
                 : totalClients}
             </div>
           </CardContent>

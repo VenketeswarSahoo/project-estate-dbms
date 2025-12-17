@@ -11,63 +11,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useItems } from "@/lib/hooks/useItems";
+import { useMessages } from "@/lib/hooks/useMessages";
+import { useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
+import { Item, Message, User } from "@/types";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function MessagesPage() {
-  const { messages, items, users, fetchMessages } = useAppStore();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [userFilter, setUserFilter] = useState<string>("ALL");
 
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+  // React Query hooks
+  const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
+  const { data: items = [], isLoading: isItemsLoading } = useItems();
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
+
+  const isLoading = isMessagesLoading || isItemsLoading || isUsersLoading;
 
   if (!user) return null;
 
-  console.log(user);
-  console.log(messages);
-
   // Filter messages for current user
-  const myMessages = messages.filter(
-    (m) => m.senderId === user.id || m.receiverId === user.id
+  const myMessages = useMemo(
+    () =>
+      messages.filter(
+        (m: Message) => m.senderId === user.id || m.receiverId === user.id
+      ),
+    [messages, user]
   );
 
   // Identify relevant items (threads)
-  const myItemIds = new Set(
-    myMessages.map((m) => m.itemId).filter(Boolean) as string[]
+  const myItemIds = useMemo(
+    () =>
+      new Set(
+        myMessages.map((m: Message) => m.itemId).filter(Boolean) as string[]
+      ),
+    [myMessages]
   );
 
   // Apply Search
-  let filteredItems = items.filter(
-    (item) =>
-      myItemIds.has(item.id) &&
-      (item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.uid.toLowerCase().includes(search.toLowerCase()))
+  let filteredItems = useMemo(
+    () =>
+      items.filter(
+        (item: Item) =>
+          myItemIds.has(item.id) &&
+          (item.name.toLowerCase().includes(search.toLowerCase()) ||
+            item.uid.toLowerCase().includes(search.toLowerCase()))
+      ),
+    [items, myItemIds, search]
   );
 
   // Apply User Filter
   if (userFilter !== "ALL") {
-    filteredItems = filteredItems.filter((item) => {
-      const itemMsgs = myMessages.filter((m) => m.itemId === item.id);
+    filteredItems = filteredItems.filter((item: Item) => {
+      const itemMsgs = myMessages.filter((m: Message) => m.itemId === item.id);
       return itemMsgs.some(
-        (m) => m.senderId === userFilter || m.receiverId === userFilter
+        (m: Message) => m.senderId === userFilter || m.receiverId === userFilter
       );
     });
   }
 
   // Identify Interlocutors for Filter
-  const myInterlocutorIds = new Set<string>();
-  myMessages.forEach((m) => {
-    if (m.senderId !== user.id) myInterlocutorIds.add(m.senderId);
-    if (m.receiverId !== user.id) myInterlocutorIds.add(m.receiverId);
-  });
-  const myInterlocutors = (users || []).filter((u) =>
-    myInterlocutorIds.has(u.id)
+  const myInterlocutorIds = useMemo(() => {
+    const ids = new Set<string>();
+    myMessages.forEach((m: Message) => {
+      if (m.senderId !== user.id) ids.add(m.senderId);
+      if (m.receiverId !== user.id) ids.add(m.receiverId);
+    });
+    return ids;
+  }, [myMessages, user]);
+
+  const myInterlocutors = useMemo(
+    () => (users || []).filter((u: User) => myInterlocutorIds.has(u.id)),
+    [users, myInterlocutorIds]
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] flex flex-col">
@@ -90,7 +117,7 @@ export default function MessagesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Conversations</SelectItem>
-                {myInterlocutors.map((u) => (
+                {myInterlocutors.map((u: User) => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.name} ({u.role})
                   </SelectItem>

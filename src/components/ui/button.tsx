@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors" +
-    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 outline-none" +
+  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors " +
+    "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 outline-none " +
     "focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
@@ -19,7 +19,7 @@ const buttonVariants = cva(
           "before:absolute before:inset-0 before:border-t-[3px] before:border-white before:rounded-lg before:scale-[0.98] before:opacity-75 " +
           "dark:bg-gradient-to-t dark:from-muted/40 dark:to-muted/20 " +
           "dark:border-border/40 " +
-          "dark:before:border-white/40 ",
+          "dark:before:border-white/40",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
@@ -27,9 +27,10 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
 
         default:
-          "relative bg-gradient-to-b from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden cursor-pointer w-[138px] px-4 py-2 " +
-          "before:absolute before:inset-0 before:border-t-[3px] before:border-zinc-400 before:rounded-lg before:scale-[0.98] before:opacity-75 " +
-          "hover:bg-black/90 dark:hover:bg-primary/80",
+          "relative bg-gradient-to-b from-primary via-primary/90 to-[#B8860B] text-primary-foreground overflow-hidden " +
+          "shadow-lg shadow-primary/20 " +
+          "before:absolute before:inset-0 before:border-t-[3px] before:border-white/50 before:rounded-lg before:scale-[0.98] " +
+          "hover:bg-gradient-to-b hover:from-primary/90 hover:via-primary/80 hover:to-[#B8860B]/90",
       },
       size: {
         default: "h-9 px-5 w-[158px] text-sm",

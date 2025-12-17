@@ -68,7 +68,7 @@ const Header = () => {
               size="icon"
               className="gap-2 px-2 py-1 hover:bg-transparent relative"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-purple-500 flex items-center justify-center text-white font-bold shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/50 flex items-center justify-center text-white font-bold shadow-sm">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
               <div className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-background"></div>

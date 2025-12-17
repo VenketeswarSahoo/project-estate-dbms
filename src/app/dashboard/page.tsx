@@ -5,21 +5,19 @@ import { ChartAreaGradient } from "@/components/dashboard/chat-line-multiple";
 import { ChartPieDonutText } from "@/components/dashboard/chat-pie-donut-text";
 import { SectionCards } from "@/components/dashboard/section-cards";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
-import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  const { fetchUsers, fetchItems, fetchMessages } = useAppStore();
+  // const { fetchUsers, fetchItems, fetchMessages } = useAppStore();
 
-  useEffect(() => {
-    if (user) {
-      fetchUsers();
-      fetchItems();
-      fetchMessages();
-    }
-  }, [user, fetchUsers, fetchItems, fetchMessages]);
+  // useEffect(() => {
+  //   if (user) {
+  //     fetchUsers();
+  //     fetchItems();
+  //     fetchMessages();
+  //   }
+  // }, [user, fetchUsers, fetchItems, fetchMessages]);
 
   if (!user) return null;
 

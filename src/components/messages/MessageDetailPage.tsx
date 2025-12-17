@@ -3,39 +3,45 @@
 import { MessageThread } from "@/components/messages/MessageThread";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useItems } from "@/lib/hooks/useItems";
+import { useMessageMutation, useMessages } from "@/lib/hooks/useMessages";
+import { useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
+import { Item, Message } from "@/types";
 import { Mic, MicOff, Send } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 
 export default function MessageDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId");
-  const { messages, items, users, addMessage, fetchMessages } = useAppStore();
   const { user } = useAuth();
+
+  // React Query hooks
+  const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
+  const { data: items = [], isLoading: isItemsLoading } = useItems();
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
+  const messageMutation = useMessageMutation();
+
   const [replyContent, setReplyContent] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+  const isMobile = useIsMobile();
 
-  // Track cursor position for inserting speech text
+  const isLoading = isMessagesLoading || isItemsLoading || isUsersLoading;
+
   const cursorRef = useRef<number>(0);
 
-  // Helper: insert text at current cursor position
   const insertText = (
     original: string,
     textToInsert: string,
     index: number
   ) => {
-    // Ensure index is within bounds
     const pos = Math.min(Math.max(index, 0), original.length);
     return original.slice(0, pos) + textToInsert + original.slice(pos);
   };
@@ -51,19 +57,13 @@ export default function MessageDetailPage() {
   } = useSpeechToText({
     language: "en-US",
     onFinal: (text) => {
-      // On final result, commit it to state
       const newFragment = text + " ";
 
       setReplyContent((prev) => {
         const updated = insertText(prev, newFragment, cursorRef.current);
-        // Advance cursor position to after the inserted text
         cursorRef.current += newFragment.length;
         return updated;
       });
-
-      // Since we modified content programmatically, we should ensure the cursor in DOM needs update?
-      // React controlled input usually handles value, but cursor position might jump to end.
-      // We might need to restore cursor.
     },
   });
 
@@ -72,16 +72,6 @@ export default function MessageDetailPage() {
       toast.error(`Speech Error: ${error}`);
     }
   }, [error]);
-
-  // Effect to restore cursor position after programmatic update
-  useEffect(() => {
-    if (textareaRef.current && isListening) {
-      // This is tricky in React.
-      // If we type, React keeps cursor. If we set state, cursor might jump.
-      // However, for speech append, simpler is usually fine.
-      // If needed, we could use useLayoutEffect with selectionStart setting.
-    }
-  }, [replyContent, isListening]);
 
   const updateCursorPosition = (
     e: React.SyntheticEvent<HTMLTextAreaElement>
@@ -104,34 +94,69 @@ export default function MessageDetailPage() {
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [isListening, startListening, stopListening, isSupported]);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const itemId = params.itemId as string;
-  const item = items.find((i) => i.id === itemId);
-  if (!item) return <div>Item not found</div>;
+  const item = items.find((i: Item) => i.id === itemId);
+  if (!item) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold mb-4">Item not found</div>
+        <Button variant="outline" onClick={() => window.history.back()}>
+          Go Back
+        </Button>
+      </div>
+    );
+  }
 
-  const threadMessages = messages.filter(
-    (m) =>
-      (m.senderId === user.id || m.receiverId === user.id) &&
-      m.itemId === itemId &&
-      (!targetUserId ||
-        m.senderId === targetUserId ||
-        m.receiverId === targetUserId)
+  const threadMessages = useMemo(
+    () =>
+      messages.filter(
+        (m: Message) =>
+          (m.senderId === user.id || m.receiverId === user.id) &&
+          m.itemId === itemId &&
+          (!targetUserId ||
+            m.senderId === targetUserId ||
+            m.receiverId === targetUserId)
+      ),
+    [messages, user, itemId, targetUserId]
   );
 
-  const lastIncomingMsg = [...threadMessages]
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )
-    .find((m) => m.senderId !== user.id);
+  const lastIncomingMsg = useMemo(
+    () =>
+      [...threadMessages]
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+        .find((m) => m.senderId !== user.id),
+    [threadMessages, user]
+  );
 
-  const lastOutgoingMsg = [...threadMessages]
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )
-    .find((m) => m.senderId === user.id);
+  const lastOutgoingMsg = useMemo(
+    () =>
+      [...threadMessages]
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+        .find((m) => m.senderId === user.id),
+    [threadMessages, user]
+  );
 
   const replyReceiverId =
     lastIncomingMsg?.senderId || lastOutgoingMsg?.receiverId;
@@ -161,29 +186,35 @@ export default function MessageDetailPage() {
     textareaRef.current?.focus();
   }, []);
 
-  const handleReply = () => {
+  const handleReply = async () => {
     if (!replyContent.trim()) return;
     if (!replyReceiverId) {
       toast.error("Cannot determine recipient for reply.");
       return;
     }
-    const newMessage = {
-      id: `msg-${uuidv4()}`,
-      senderId: user.id,
-      receiverId: replyReceiverId,
-      itemId: item.id,
-      content: replyContent,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-    addMessage(newMessage);
-    setReplyContent("");
-    cursorRef.current = 0;
-    toast.success("Reply sent");
-    setTimeout(scrollToBottom, 50);
+
+    await messageMutation.mutateAsync(
+      {
+        senderId: user.id,
+        receiverId: replyReceiverId,
+        itemId: item.id,
+        content: replyContent,
+        read: false,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Reply sent");
+          setReplyContent("");
+          cursorRef.current = 0;
+          setTimeout(scrollToBottom, 50);
+        },
+        onError: () => {
+          toast.error("Failed to send reply");
+        },
+      }
+    );
   };
 
-  // Calculate display value
   const displayValue = useMemo(() => {
     if (isListening && interimResult) {
       return insertText(replyContent, interimResult, cursorRef.current);
@@ -223,7 +254,6 @@ export default function MessageDetailPage() {
               onClick={updateCursorPosition}
               onKeyUp={updateCursorPosition}
               onChange={(e) => {
-                // Determine new text content
                 setReplyContent(e.target.value);
                 updateCursorPosition(e);
 
@@ -232,6 +262,7 @@ export default function MessageDetailPage() {
                 }
               }}
               className="min-h-[44px] md:min-h-[60px] max-h-[160px] resize-none pr-10 overflow-y-auto custom-scrollbar text-base"
+              disabled={messageMutation.isPending}
             />
 
             <button
@@ -258,6 +289,7 @@ export default function MessageDetailPage() {
                   ? "Speech recognition not supported"
                   : "Voice input"
               }
+              disabled={messageMutation.isPending}
             >
               {isListening ? (
                 <MicOff className="h-4 w-4" />
@@ -269,9 +301,10 @@ export default function MessageDetailPage() {
 
           <Button
             onClick={handleReply}
-            disabled={!replyContent.trim()}
-            size="icon"
+            size={isMobile ? "icon" : "default"}
+            disabled={!replyContent.trim() || messageMutation.isPending}
             className="shrink-0 h-11 w-11 md:h-10 md:w-auto"
+            loading={messageMutation.isPending}
           >
             <Send className="h-4 w-4" />
             <span className="sr-only md:not-sr-only md:ml-2">Send</span>

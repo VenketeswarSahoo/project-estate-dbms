@@ -14,7 +14,7 @@ import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -35,11 +35,13 @@ type BeneficiaryFormValues = z.infer<typeof beneficiarySchema>;
 interface BeneficiaryFormProps {
   initialData?: User;
   onSubmit: (data: BeneficiaryFormValues) => void;
+  loading?: boolean;
 }
 
 export function BeneficiaryForm({
   initialData,
   onSubmit,
+  loading,
 }: BeneficiaryFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,7 +151,9 @@ export function BeneficiaryForm({
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Save Beneficiary</Button>
+          <Button type="submit" loading={loading}>
+            Save Beneficiary
+          </Button>
         </div>
       </form>
     </Form>

@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// lib/hooks/useItems.ts
 import { Item } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-// ✅ Fetch items (optionally by clientId)
-export const useItems = (clientId?: string) => {
-  return useQuery<Item[]>({
+export function useItems(clientId?: string) {
+  return useQuery({
     queryKey: ["items", clientId],
     queryFn: async () => {
       const query = clientId ? `?clientId=${clientId}` : "";
@@ -12,68 +12,40 @@ export const useItems = (clientId?: string) => {
       return res.json();
     },
   });
-};
+}
 
-// ✅ Add new item
-export const useAddItem = () => {
+export function useItemMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      itemData: Omit<Item, "id" | "createdAt" | "updatedAt">
-    ) => {
-      const res = await fetch("/api/items", {
-        method: "POST",
+    mutationFn: async ({ id, ...data }: Partial<Item> & { id?: string }) => {
+      const url = id ? `/api/items/${id}` : "/api/items";
+      const method = id ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(itemData),
+        body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to add item");
+      if (!res.ok) throw new Error("Operation failed");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
     },
   });
-};
+}
 
-// ✅ Update item
-export const useUpdateItem = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: string;
-      updates: Partial<Item>;
-    }) => {
-      const res = await fetch(`/api/items/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      if (!res.ok) throw new Error("Failed to update item");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-    },
-  });
-};
-
-// ✅ Delete item
-export const useDeleteItem = () => {
+export function useDeleteItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete item");
-      return id;
+      if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
     },
   });
-};
+}

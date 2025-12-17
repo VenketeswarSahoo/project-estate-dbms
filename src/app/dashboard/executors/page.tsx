@@ -2,6 +2,16 @@
 
 import { ExecutorForm } from "@/components/forms/ExecutorForm";
 import { ExecutorTable } from "@/components/tables/ExecutorTable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,61 +20,109 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAppStore } from "@/store/store";
+import { useDeleteUser, useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { User } from "@/types";
-import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader, Plus } from "lucide-react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 export default function ExecutorsPage() {
-  const { users, fetchUsers, addUser, updateUser, deleteUser } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [editingExecutor, setEditingExecutor] = useState<User | null>(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [executorToDelete, setExecutorToDelete] = useState<User | null>(null);
 
-  const executors = users.filter((u) => u.role === "EXECUTOR");
+  // React Query hooks
+  const { data: users = [], isLoading } = useUsers();
+  const executors = users.filter((u: User) => u.role === "EXECUTOR");
 
-  const handleSubmit = async (data: {
+  const userMutation = useUserMutation();
+  const deleteMutation = useDeleteUser();
+
+  const handleSubmit = async (formData: {
     name: string;
     email: string;
     password?: string;
     avatar?: string;
   }) => {
-    try {
-      if (editingExecutor) {
-        const updateData: any = { name: data.name, email: data.email };
-        if (data.password) updateData.password = data.password;
-        if (data.avatar) updateData.avatar = data.avatar;
-
-        await updateUser(editingExecutor.id, updateData);
-        toast.success("Executor updated successfully");
-      } else {
-        await addUser({
-          ...data,
-          role: "EXECUTOR",
-          password: data.password || "password123",
-        });
-        toast.success("Executor created successfully");
+    await userMutation.mutateAsync(
+      {
+        id: editingExecutor?.id,
+        ...formData,
+        role: "EXECUTOR" as const,
+        password: formData.password || "password123",
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            editingExecutor
+              ? "Executor updated successfully"
+              : "Executor created successfully"
+          );
+          setIsOpen(false);
+          setEditingExecutor(null);
+        },
+        onError: () => {
+          toast.error("Operation failed");
+        },
       }
-      setIsOpen(false);
-      setEditingExecutor(null);
-    } catch (error) {
-      toast.error("Operation failed");
+    );
+  };
+
+  const handleAction = useCallback(
+    (executor: User, action: "edit" | "delete" | "view") => {
+      if (action === "edit") {
+        setEditingExecutor(executor);
+        setIsOpen(true);
+      } else {
+        setExecutorToDelete(executor);
+        setDeleteDialogOpen(true);
+      }
+    },
+    []
+  );
+
+  const handleDeleteConfirm = async () => {
+    if (executorToDelete) {
+      await deleteMutation.mutateAsync(executorToDelete.id, {
+        onSuccess: () => {
+          toast.success("Executor deleted");
+          setDeleteDialogOpen(false);
+          setExecutorToDelete(null);
+        },
+        onError: () => {
+          toast.error("Delete failed");
+        },
+      });
     }
   };
 
-  const handleAction = async (executor: User, action: "edit" | "delete") => {
-    if (action === "edit") {
-      setEditingExecutor(executor);
-      setIsOpen(true);
-    } else {
-      await deleteUser(executor.id);
-      toast.success("Executor deleted");
+  // Keyboard shortcut for Enter key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (
+        deleteDialogOpen &&
+        !deleteMutation.isPending &&
+        event.key === "Enter"
+      ) {
+        event.preventDefault();
+        handleDeleteConfirm();
+      }
+    },
+    [deleteDialogOpen, deleteMutation.isPending]
+  );
+
+  // Add event listener for keyboard shortcuts
+  useState(() => {
+    if (deleteDialogOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+      };
     }
-  };
+  });
 
   return (
     <div className="space-y-6">
@@ -78,7 +136,7 @@ export default function ExecutorsPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="w-fit">
+            <Button className="w-fit" disabled={isLoading}>
               <Plus className="mr-2 h-4 w-4" /> Add Executor
             </Button>
           </DialogTrigger>
@@ -91,12 +149,47 @@ export default function ExecutorsPage() {
             <ExecutorForm
               initialData={editingExecutor || undefined}
               onSubmit={handleSubmit}
+              loading={userMutation.isPending}
             />
           </DialogContent>
         </Dialog>
       </div>
 
       <ExecutorTable executors={executors} onAction={handleAction} />
+
+      {/* Delete Dialog - Now outside DataTable */}
+      <AlertDialog open={deleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Executor</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">"{executorToDelete?.name}"</span>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={deleteMutation.isPending}
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/80 flex items-center gap-2"
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin" />
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

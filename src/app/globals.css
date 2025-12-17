@@ -51,8 +51,10 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
+  --primary: oklch(0.8235 0.1701 79.35);
+  /* Golden primary color */
   --primary-foreground: oklch(0.985 0 0);
+  /* White text on primary */
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
@@ -70,7 +72,8 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary: oklch(0.8235 0.1701 79.35);
+  /* Updated to match primary */
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
@@ -85,15 +88,17 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
+  --primary: oklch(0.8235 0.1701 79.35);
+  /* Same golden primary */
   --primary-foreground: oklch(0.21 0.006 285.885);
+  /* Dark text for contrast */
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(63.378% 0.25158 27.212);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
@@ -104,7 +109,8 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.8235 0.1701 79.35);
+  /* Updated to match primary */
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -130,9 +136,7 @@ button {
 @layer utilities {
   .custom-scrollbar {
     scrollbar-width: thin;
-    /* Firefox */
     scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
-    /* thumb, track */
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -146,25 +150,61 @@ button {
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: rgba(100, 116, 139, 0.4);
-    /* Tailwind slate-500/40 */
     border-radius: 9999px;
   }
 
   .dark .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: rgba(148, 163, 184, 0.5);
-    /* Tailwind slate-400/50 for dark mode */
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: rgba(100, 116, 139, 0.6);
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.4);
+  /* Gradient animation utilities */
+  .bg-gradient-gold {
+    background: linear-gradient(to bottom,
+        var(--primary) 0%,
+        color-mix(in srgb, var(--primary) 90%, transparent) 50%,
+        #B8860B 100%);
   }
 
-  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted) / 0.4);
+  .bg-gradient-gold-hover {
+    background: linear-gradient(to bottom,
+        color-mix(in srgb, var(--primary) 90%, transparent) 0%,
+        color-mix(in srgb, var(--primary) 80%, transparent) 50%,
+        color-mix(in srgb, #B8860B 90%, transparent) 100%);
   }
 
+  .shadow-gold {
+    box-shadow: 0 4px 14px 0 rgba(184, 134, 11, 0.2);
+  }
+
+  .dark .shadow-gold {
+    box-shadow: 0 4px 14px 0 rgba(184, 134, 11, 0.3);
+  }
+
+  /* Smooth gradient transitions */
+  .transition-gradient {
+    transition: background 0.3s ease;
+  }
+
+  /* For the button border effect */
+  .border-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 100%);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }

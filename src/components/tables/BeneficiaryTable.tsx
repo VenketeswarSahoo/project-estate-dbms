@@ -1,309 +1,163 @@
+// components/tables/BeneficiaryTable.tsx
 "use client";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { User } from "@/types";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
+  ArrowUpDown,
   Mail,
   Pencil,
-  Search,
+  Settings,
   Trash2,
   User as UserIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Card } from "../ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Input } from "../ui/input";
+import * as React from "react";
+import { DataTable } from "./DataTable";
 
 interface BeneficiaryTableProps {
   beneficiaries: User[];
-  onAction: (beneficiary: User, action: "edit" | "delete") => void;
+  onAction: (beneficiary: User, action: "edit" | "delete" | "view") => void;
 }
+
+// Define columns for TanStack Table
+const getColumns = (
+  onEdit: (beneficiary: User) => void,
+  onDeleteClick: (beneficiary: User) => void
+): ColumnDef<User>[] => [
+  {
+    accessorKey: "name",
+    enableSorting: true,
+    header: ({ column }) => {
+      return (
+        <div
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="cursor-pointer font-bold"
+        >
+          <div className="flex items-center">
+            <UserIcon className="mr-2 h-4 w-4" />
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        </div>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="font-medium flex items-center gap-2">
+        <Avatar>
+          <AvatarImage src={row.original.avatar} alt={row.original.name} />
+          <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+            {row.original.name.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        {row.getValue("name")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "email",
+    enableSorting: true,
+    header: ({ column }) => {
+      return (
+        <div
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="cursor-pointer font-bold"
+        >
+          <div className="flex items-center">
+            <Mail className="mr-2 h-4 w-4" />
+            Email
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        </div>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("email")}</div>,
+  },
+  {
+    id: "actions",
+    header: () => (
+      <div className="flex items-center justify-center font-bold">
+        <Settings className="mr-2 h-4 w-4" />
+        Action
+      </div>
+    ),
+    cell: ({ row }) => {
+      const beneficiary = row.original;
+
+      return (
+        <div className="flex justify-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onEdit(beneficiary)}
+              >
+                <Pencil className="h-4 w-4 text-green-700" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit Beneficiary</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onDeleteClick(beneficiary)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete Beneficiary</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    },
+    enableSorting: false,
+  },
+];
 
 export function BeneficiaryTable({
   beneficiaries,
   onAction,
 }: BeneficiaryTableProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [beneficiaryToDelete, setBeneficiaryToDelete] = useState<User | null>(
-    null
+  // Create handlers that use the onAction prop
+  const handleEdit = React.useCallback(
+    (beneficiary: User) => {
+      onAction(beneficiary, "edit");
+    },
+    [onAction]
   );
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleDeleteClick = (beneficiary: User) => {
-    setBeneficiaryToDelete(beneficiary);
-    setDeleteDialogOpen(true);
-  };
+  const handleDeleteClick = React.useCallback(
+    (beneficiary: User) => {
+      onAction(beneficiary, "delete");
+    },
+    [onAction]
+  );
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  // Filter items
-  const filteredItems = beneficiaries.filter((beneficiary) => {
-    const term = searchQuery.toLowerCase();
-    const matchesSearch =
-      beneficiary.name.toLowerCase().includes(term) ||
-      beneficiary.email?.toLowerCase().includes(term);
-
-    return matchesSearch;
-  });
-
-  // Calculate pagination values for list view
-  const totalItems = filteredItems.length;
-  const totalPages = Math.ceil(totalItems / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
-  const paginatedItems = filteredItems.slice(startIndex, endIndex);
-
-  // Handle page change
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
-  // Handle rows per page change
-  const handleRowsPerPageChange = (value: string) => {
-    const newRowsPerPage = parseInt(value);
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1);
-  };
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  const columns = React.useMemo(
+    () => getColumns(handleEdit, handleDeleteClick),
+    [handleEdit, handleDeleteClick]
+  );
 
   return (
-    <>
-      <div className="relative w-full lg:w-72">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search executor name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-8"
-        />
-      </div>
-      <Card className="p-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r">
-              <TableHead>
-                <div className="flex items-center font-bold">
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Name
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center font-bold">
-                  <Mail className="mr-2 h-4 w-4" />
-                  Email
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center justify-center font-bold">
-                  Action
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedItems.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="text-center h-24 text-muted-foreground"
-                >
-                  No beneficiaries found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedItems.map((beneficiary) => (
-                <TableRow
-                  key={beneficiary.id}
-                  className="hover:bg-muted/50 *:border-border [&>:not(:last-child)]:border-r"
-                >
-                  <TableCell className="font-medium">
-                    {beneficiary.name}
-                  </TableCell>
-                  <TableCell>{beneficiary.email}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-center gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => onAction(beneficiary, "edit")}
-                          >
-                            <Pencil className="h-4 w-4 text-green-700" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Edit Beneficiary</p>
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <AlertDialog
-                        open={deleteDialogOpen}
-                        onOpenChange={setDeleteDialogOpen}
-                      >
-                        <AlertDialogTrigger asChild>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDeleteClick(beneficiary)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Delete Beneficiary</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Delete Beneficiary
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "
-                              {beneficiaryToDelete?.name}"?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive hover:bg-destructive/80"
-                              onClick={() => {
-                                if (beneficiaryToDelete) {
-                                  onAction(beneficiaryToDelete, "delete");
-                                  setDeleteDialogOpen(false);
-                                  setBeneficiaryToDelete(null);
-                                }
-                              }}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 py-2">
-        <div className="text-sm text-muted-foreground order-2 lg:order-1">
-          Showing {startIndex + 1} to {endIndex} of {totalItems} items
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto order-1 lg:order-2">
-          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              Rows per page
-            </span>
-            <Select
-              value={rowsPerPage.toString()}
-              onValueChange={handleRowsPerPageChange}
-            >
-              <SelectTrigger className="w-[70px] h-8">
-                <SelectValue placeholder={rowsPerPage} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8"
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="h-8 w-8"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-
-            <div className="flex items-center gap-1 mx-1 text-sm">
-              <span className="text-muted-foreground">Page</span>
-              <span className="font-medium min-w-[1.5rem] text-center">
-                {currentPage}
-              </span>
-              <span className="text-muted-foreground">of {totalPages}</span>
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => goToPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8"
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
+    <DataTable
+      data={beneficiaries}
+      columns={columns}
+      onAction={onAction}
+      searchPlaceholder="Search beneficiary name or email..."
+      entityName="Beneficiary"
+    />
   );
 }

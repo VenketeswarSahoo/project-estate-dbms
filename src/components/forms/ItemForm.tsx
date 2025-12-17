@@ -20,17 +20,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useItemPhotosUpload } from "@/hooks/use-item-photos-upload";
+import { useAuth } from "@/providers/auth";
 import { Client, Item } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
+import Image from "next/image";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useAuth } from "@/providers/auth";
-import Image from "next/image";
 import { GalleryModal } from "../slider/gallery-modal";
 import { Checkbox } from "../ui/checkbox";
-import { useItemPhotosUpload } from "@/hooks/use-item-photos-upload";
 
 const itemSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -53,6 +53,7 @@ interface ItemFormProps {
   clients: Client[];
   onSubmit: (data: ItemFormValues) => void;
   isReadOnly?: boolean;
+  loading?: boolean;
 }
 
 export function ItemForm({
@@ -60,6 +61,7 @@ export function ItemForm({
   clients = [],
   onSubmit,
   isReadOnly = false,
+  loading = false,
 }: ItemFormProps) {
   const { user } = useAuth();
   const [isUnlocked, setIsUnlocked] = React.useState(false);
@@ -83,12 +85,11 @@ export function ItemForm({
       console.error("Upload error:", error);
     },
     maxSizeKB: 500,
-    maxFiles: 20, // Optional: override default
+    maxFiles: 20,
   });
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Updated handlePhotoUpload that uses the hook
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleMultiPhotoUpload(e, form.setValue, "photos");
   };
@@ -145,7 +146,6 @@ export function ItemForm({
     setCurrentIndex(index);
   };
 
-  // Get current photos from form to display
   const currentPhotos = form.watch("photos") || [];
 
   return (
@@ -157,6 +157,7 @@ export function ItemForm({
               type="button"
               variant="outline"
               onClick={() => setIsUnlocked(true)}
+              disabled={loading}
             >
               Unlock for Edit
             </Button>
@@ -192,6 +193,7 @@ export function ItemForm({
                       placeholder="Item Name"
                       {...field}
                       readOnly={effectiveReadOnly}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -207,7 +209,7 @@ export function ItemForm({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={effectiveReadOnly}
+                    disabled={effectiveReadOnly || loading}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -239,6 +241,7 @@ export function ItemForm({
                     className="h-24 resize-none"
                     {...field}
                     readOnly={effectiveReadOnly}
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -258,6 +261,7 @@ export function ItemForm({
                       type="number"
                       {...field}
                       readOnly={effectiveReadOnly}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -273,7 +277,7 @@ export function ItemForm({
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={effectiveReadOnly}
+                    disabled={effectiveReadOnly || loading}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -323,6 +327,7 @@ export function ItemForm({
                             placeholder="Type or select Beneficiary..."
                             {...field}
                             readOnly={effectiveReadOnly}
+                            disabled={loading}
                           />
                         </div>
                       ) : showDonationSelect ? (
@@ -332,6 +337,7 @@ export function ItemForm({
                             placeholder="Type or select Recipient..."
                             {...field}
                             readOnly={effectiveReadOnly}
+                            disabled={loading}
                           />
                           <datalist id="saved-donations">
                             {currentClient?.savedDonationRecipients?.map(
@@ -348,6 +354,7 @@ export function ItemForm({
                             placeholder="Type or select Action..."
                             {...field}
                             readOnly={effectiveReadOnly}
+                            disabled={loading}
                           />
                         </div>
                       ) : (
@@ -355,6 +362,7 @@ export function ItemForm({
                           placeholder="Details..."
                           {...field}
                           readOnly={effectiveReadOnly}
+                          disabled={loading}
                         />
                       )}
                     </FormControl>
@@ -374,7 +382,7 @@ export function ItemForm({
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    disabled={effectiveReadOnly}
+                    disabled={effectiveReadOnly || loading}
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
@@ -391,7 +399,6 @@ export function ItemForm({
           <div className="space-y-4">
             <FormLabel>Photos</FormLabel>
             <div className="flex flex-wrap gap-4 items-center">
-              {/* Hidden File Input */}
               <input
                 type="file"
                 accept="image/*"
@@ -399,7 +406,7 @@ export function ItemForm({
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handlePhotoUpload}
-                disabled={effectiveReadOnly || isUploading}
+                disabled={effectiveReadOnly || isUploading || loading}
               />
 
               {!effectiveReadOnly && (
@@ -409,7 +416,7 @@ export function ItemForm({
                     variant="outline"
                     className="text-xs"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
+                    disabled={isUploading || loading}
                   >
                     {isUploading ? (
                       "Uploading..."
@@ -446,7 +453,7 @@ export function ItemForm({
                       size="icon"
                       onClick={() => removePhoto(index)}
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 h-6 w-6 transition-opacity"
-                      disabled={isUploading}
+                      disabled={isUploading || loading}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -464,8 +471,12 @@ export function ItemForm({
 
           <div className="flex justify-end">
             {!effectiveReadOnly && (
-              <Button type="submit" disabled={isUploading}>
-                {isUploading ? "Saving..." : "Save Changes"}
+              <Button
+                type="submit"
+                disabled={isUploading || loading}
+                loading={loading}
+              >
+                {isUploading ? "Uploading..." : "Save Changes"}
               </Button>
             )}
           </div>

@@ -2,40 +2,44 @@
 
 import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
+import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { useAuth } from "@/providers/auth";
-import { useAppStore } from "@/store/store";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 
 export default function NewClientPage() {
-  const { addUser, users, fetchUsers } = useAppStore();
   const { user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  // React Query hooks
+  const { data: users = [], isLoading: isUsersLoading } = useUsers();
+  const userMutation = useUserMutation();
 
   if (!user || user.role !== "ADMIN") {
     return <div>Access Denied</div>;
   }
 
-  const handleSubmit = (data: any) => {
-    const newClient = {
-      id: `client-${uuidv4()}`,
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    addUser({ ...newClient, role: "CLIENT" });
-    toast.success("Client created successfully");
-    router.push("/dashboard/clients");
+  const handleSubmit = async (formData: any) => {
+    await userMutation.mutateAsync(
+      {
+        ...formData,
+        role: "CLIENT" as const,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Client created successfully");
+          router.push("/dashboard/clients");
+        },
+        onError: () => {
+          toast.error("Failed to create client");
+        },
+      }
+    );
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-2xl mx-auto lg:mt-10">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
@@ -49,7 +53,11 @@ export default function NewClientPage() {
       </div>
 
       <div className="p-6 border rounded-lg bg-card">
-        <ClientForm users={users} onSubmit={handleSubmit} />
+        <ClientForm
+          users={users}
+          onSubmit={handleSubmit}
+          loading={userMutation.isPending}
+        />
       </div>
     </div>
   );

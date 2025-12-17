@@ -14,7 +14,7 @@ import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -35,9 +35,10 @@ type AgentFormValues = z.infer<typeof agentSchema>;
 interface AgentFormProps {
   initialData?: User;
   onSubmit: (data: AgentFormValues) => void;
+  loading?: boolean;
 }
 
-export function AgentForm({ initialData, onSubmit }: AgentFormProps) {
+export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { avatarPreview, setAvatarPreview, isUploading, handleAvatarUpload } =
@@ -146,7 +147,9 @@ export function AgentForm({ initialData, onSubmit }: AgentFormProps) {
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Save Agent</Button>
+          <Button type="submit" loading={loading}>
+            Save Agent
+          </Button>
         </div>
       </form>
     </Form>

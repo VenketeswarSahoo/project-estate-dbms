@@ -14,9 +14,8 @@ import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 const executorSchema = z.object({
@@ -36,9 +35,14 @@ type ExecutorFormValues = z.infer<typeof executorSchema>;
 interface ExecutorFormProps {
   initialData?: User;
   onSubmit: (data: ExecutorFormValues) => void;
+  loading?: boolean;
 }
 
-export function ExecutorForm({ initialData, onSubmit }: ExecutorFormProps) {
+export function ExecutorForm({
+  initialData,
+  onSubmit,
+  loading,
+}: ExecutorFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { avatarPreview, setAvatarPreview, isUploading, handleAvatarUpload } =
@@ -147,7 +151,9 @@ export function ExecutorForm({ initialData, onSubmit }: ExecutorFormProps) {
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Save Executor</Button>
+          <Button type="submit" loading={loading}>
+            Save Executor
+          </Button>
         </div>
       </form>
     </Form>
