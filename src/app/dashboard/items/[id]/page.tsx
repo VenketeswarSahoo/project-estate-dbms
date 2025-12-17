@@ -31,7 +31,6 @@ export default function ItemDetailsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // React Query hooks
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const itemMutation = useItemMutation();
@@ -44,17 +43,35 @@ export default function ItemDetailsPage() {
 
   const itemId = params.id as string;
   const item = items.find((i: Item) => i.id === itemId);
-
   const isLoading = isItemsLoading || isUsersLoading;
 
+  // ✅ Move all useEffects before conditional returns
   useEffect(() => {
-    // If item not found and not loading, redirect
     if (!isLoading && !item) {
       toast.error("Item not found");
       router.push("/dashboard/items");
     }
   }, [isLoading, item, router]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        deleteDialogOpen &&
+        !deleteMutation.isPending &&
+        event.key === "Enter"
+      ) {
+        event.preventDefault();
+        handleDeleteConfirm();
+      }
+    };
+
+    if (deleteDialogOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [deleteDialogOpen, deleteMutation.isPending]);
+
+  // ✅ Now it’s safe to return conditionally
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -67,6 +84,20 @@ export default function ItemDetailsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold mb-4">Item not found</div>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/dashboard/items")}
+        >
+          Go Back to Items
+        </Button>
       </div>
     );
   }
@@ -146,27 +177,6 @@ export default function ItemDetailsPage() {
     setGalleryOpen(true);
     setCurrentIndex(index);
   };
-
-  // Keyboard shortcut for Enter key in delete dialog
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        deleteDialogOpen &&
-        !deleteMutation.isPending &&
-        event.key === "Enter"
-      ) {
-        event.preventDefault();
-        handleDeleteConfirm();
-      }
-    };
-
-    if (deleteDialogOpen) {
-      window.addEventListener("keydown", handleKeyDown);
-      return () => {
-        window.removeEventListener("keydown", handleKeyDown);
-      };
-    }
-  }, [deleteDialogOpen, deleteMutation.isPending]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
