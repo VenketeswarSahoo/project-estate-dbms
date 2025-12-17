@@ -1,34 +1,47 @@
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import { Item } from "@/types";
+import JsBarcode from "jsbarcode";
+import jsPDF from "jspdf";
 
-export const generateBarcodePDF = (item: Item) => {
-  const doc = new jsPDF();
-  const pieceCount = item.pieces || 1;
+export const generateBarcodePDF = (item: Item, count: number = 1): string => {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-  for (let i = 1; i <= pieceCount; i++) {
-    if (i > 1) doc.addPage();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10;
+  const barcodeWidth = 60;
+  const barcodeHeight = 25;
+  const cols = 3;
+  const rows = 8;
+  const verticalSpacing = 35;
+  const horizontalSpacing = 65;
 
-    doc.setFontSize(18);
-    doc.text("Item Barcode", 14, 22);
+  let x = margin;
+  let y = margin;
 
-    doc.setFontSize(12);
-    doc.text(`Name: ${item.name}`, 14, 32);
-    doc.text(`UID: ${item.uid}`, 14, 38);
+  for (let i = 1; i <= count; i++) {
+    const canvas = document.createElement("canvas");
+    JsBarcode(canvas, item.barcode, {
+      format: "CODE128",
+      width: 1.5,
+      height: 30,
+      displayValue: true,
+      fontSize: 10,
+    });
 
-    if (pieceCount > 1) {
-      doc.setFontSize(14);
-      doc.text(`Piece ${i} of ${pieceCount}`, 14, 95);
+    const imgData = canvas.toDataURL("image/png");
+    doc.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight);
+
+    // Move to next position
+    x += horizontalSpacing;
+    if (i % cols === 0) {
+      x = margin;
+      y += verticalSpacing;
+      if (i % (cols * rows) === 0 && i < count) {
+        doc.addPage();
+        x = margin;
+        y = margin;
+      }
     }
-
-    doc.setLineWidth(0.5);
-    doc.rect(14, 45, 80, 40);
-
-    doc.setFontSize(10);
-    doc.text(item.barcode, 54, 80, { align: "center" });
-    doc.setFontSize(14);
-    doc.text("|| ||| || ||| ||", 54, 65, { align: "center" });
   }
 
-  doc.save(`${item.uid}-barcode.pdf`);
+  return doc.output("datauristring"); // returns Base64 PDF preview
 };

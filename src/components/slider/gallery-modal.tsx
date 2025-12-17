@@ -69,9 +69,9 @@ export function GalleryModal({
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col">
       {/* Gallery Header */}
-      <div className="flex items-center justify-between p-4 sm:p-6 text-white bg-black/80 backdrop-blur-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <h2 className="text-lg sm:text-xl font-semibold truncate">{title}</h2>
+      <div className="flex items-start justify-between p-4 sm:p-6 text-white bg-black/80 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 max-w-[76vw]">
+          <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
         </div>
         <Button
           variant="ghost"

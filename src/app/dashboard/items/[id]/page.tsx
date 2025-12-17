@@ -1,6 +1,7 @@
 "use client";
 
 import { BarcodeDisplay } from "@/components/common/BarcodeDisplay";
+import { BarcodePDFSheet } from "@/components/common/BarcodePDFPreviewModal";
 import { ItemForm } from "@/components/forms/ItemForm";
 import { GalleryModal } from "@/components/slider/gallery-modal";
 import {
@@ -17,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDeleteItem, useItemMutation, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { generateBarcodePDF } from "@/lib/utils/pdf-generator";
 import { useAuth } from "@/providers/auth";
 import { Item, User } from "@/types";
 import { ArrowLeft, Loader, Trash2, X } from "lucide-react";
@@ -40,6 +40,7 @@ export default function ItemDetailsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
 
   const itemId = params.id as string;
   const item = items.find((i: Item) => i.id === itemId);
@@ -230,7 +231,7 @@ export default function ItemDetailsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => generateBarcodePDF(item)}
+                    onClick={() => setPdfModalOpen(true)}
                     disabled={itemMutation.isPending}
                   >
                     Print PDF
@@ -329,6 +330,12 @@ export default function ItemDetailsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <BarcodePDFSheet
+        item={item}
+        isOpen={pdfModalOpen}
+        onClose={() => setPdfModalOpen(false)}
+      />
     </div>
   );
 }

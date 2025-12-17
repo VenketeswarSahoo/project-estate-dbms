@@ -16,7 +16,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Client, Item } from "@/types";
+import { useAuth } from "@/providers/auth";
+import { Client, Item, User } from "@/types";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   ArrowUpDown,
@@ -68,7 +69,8 @@ const getColumns = (
   showPhotos: boolean,
   selectedItems: string[],
   onSelectItem: (id: string, checked: boolean) => void,
-  onAction: (item: Item, action: "edit" | "delete" | "view") => void
+  onAction: (item: Item, action: "edit" | "delete" | "view") => void,
+  user: User
 ): ColumnDef<Item>[] => {
   const getClientName = (clientId: string) => {
     return clients.find((c) => c.id === clientId)?.name || "Unknown";
@@ -88,7 +90,6 @@ const getColumns = (
               onSelectItem(row.original.id, !!checked);
             });
           }}
-          className="mr-4"
         />
       ),
       cell: ({ row }) => (
@@ -97,7 +98,6 @@ const getColumns = (
           onCheckedChange={(checked) =>
             onSelectItem(row.original.id, !!checked)
           }
-          className="mr-4"
         />
       ),
       enableSorting: false,
@@ -261,7 +261,7 @@ const getColumns = (
                 <p>View Item</p>
               </TooltipContent>
             </Tooltip>
-            {canEdit && (
+            {user.role === "ADMIN" && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -293,6 +293,8 @@ export function ItemTable({
   canEdit,
 }: ItemTableProps) {
   const router = useRouter();
+
+  const { user } = useAuth();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showPhotos, setShowPhotos] = useState(false);
@@ -355,7 +357,8 @@ export function ItemTable({
         showPhotos,
         selectedItems,
         handleSelectItem,
-        onAction
+        onAction,
+        user as User
       ),
     [router, clients, canEdit, showPhotos, selectedItems, onAction]
   );
