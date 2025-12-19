@@ -1,4 +1,3 @@
-// components/photo-gallery.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -68,7 +67,6 @@ export function PhotoGallery({
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md" />
 
-                {/* Delete Button */}
                 {canEdit && onDeletePhoto && (
                   <Button
                     variant="destructive"
@@ -83,7 +81,6 @@ export function PhotoGallery({
                   </Button>
                 )}
 
-                {/* Image Number */}
                 <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
                   {index + 1}
                 </div>
@@ -93,7 +90,6 @@ export function PhotoGallery({
         </CardContent>
       </Card>
 
-      {/* Gallery Modal */}
       <GalleryModal
         images={photos}
         title={title}

@@ -25,7 +25,6 @@ interface AgentTableProps {
   onAction: (agent: User, action: "edit" | "delete" | "view") => void;
 }
 
-// Define columns for TanStack Table
 const getColumns = (
   onEdit: (agent: User) => void,
   onDeleteClick: (agent: User) => void
@@ -127,7 +126,6 @@ const getColumns = (
 ];
 
 export function AgentTable({ agents, onAction }: AgentTableProps) {
-  // Create handlers that use the onAction prop
   const handleEdit = React.useCallback(
     (agent: User) => {
       onAction(agent, "edit");

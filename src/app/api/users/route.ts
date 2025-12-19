@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     const data = await request.json();
 
-    // Basic validation could go here
     const user = await User.create(data);
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {

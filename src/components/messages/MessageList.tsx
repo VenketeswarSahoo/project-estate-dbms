@@ -2,7 +2,7 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -16,16 +16,14 @@ interface MessageListProps {
 
 export function MessageList({ items, messages, users }: MessageListProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   if (!user) return null;
 
-  // Helper to find interlocutor ID
   const getInterlocutorId = (msg: Message) => {
     return msg.senderId === user.id ? msg.receiverId : msg.senderId;
   };
 
-  // Group messages by Composite Key: ItemID + InterlocutorID
   const threadMap = new Map<
     string,
     {
@@ -37,7 +35,6 @@ export function MessageList({ items, messages, users }: MessageListProps) {
     }
   >();
 
-  // Use a Set of available item IDs for O(1) lookup
   const itemIds = new Set(items.map((i) => i.id));
 
   messages.forEach((msg) => {
@@ -56,7 +53,7 @@ export function MessageList({ items, messages, users }: MessageListProps) {
           interlocutor,
           messages: [],
           hasUnread: false,
-          lastMessage: msg, // Temporary, will sort later
+          lastMessage: msg,
         });
       }
     }
@@ -70,10 +67,8 @@ export function MessageList({ items, messages, users }: MessageListProps) {
     }
   });
 
-  // Convert to array and process
   const threads = Array.from(threadMap.values())
     .map((thread) => {
-      // Sort messages in thread to find actual last message
       thread.messages.sort(
         (a, b) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -126,7 +121,6 @@ export function MessageList({ items, messages, users }: MessageListProps) {
               </div>
             </div>
 
-            {/* Message Preview */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 max-w-[60vw]">
                 <span className="font-medium text-sm truncate">
@@ -138,7 +132,6 @@ export function MessageList({ items, messages, users }: MessageListProps) {
               </div>
             </div>
 
-            {/* Timestamp */}
             <div className="text-xs text-muted-foreground whitespace-nowrap min-w-[80px] text-right">
               {formatDistanceToNow(new Date(thread.lastMessage.timestamp), {
                 addSuffix: true,

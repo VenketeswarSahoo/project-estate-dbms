@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import {
   Building,
   Building2,
@@ -24,7 +24,7 @@ interface SidebarProps {
 
 export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   if (!user) return null;
 
@@ -90,7 +90,7 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
         <div
           className={cn(
             "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden",
-            "group", // Added for hover effects
+            "group",
             collapsed ? "justify-center" : "justify-start",
             isSettings && "mt-2",
             active
@@ -106,7 +106,6 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
               : {}
           }
         >
-          {/* Subtle top border effect */}
           {active && (
             <div className="absolute inset-0 border-t-[2px] border-white/50 rounded-lg scale-[0.98] pointer-events-none" />
           )}
@@ -124,7 +123,6 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
             <span className="truncate relative z-10">{item.label}</span>
           )}
 
-          {/* Subtle hover effect for inactive items */}
           {!active && (
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           )}
@@ -145,7 +143,6 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
 
   return (
     <div className="flex flex-col h-full border-r bg-background">
-      {/* Header with subtle gradient */}
       <div className="relative overflow-hidden py-4 px-4 border-b">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
         {!collapsed ? (
@@ -160,14 +157,12 @@ export function AppSidebar({ collapsed = false, onNavigate }: SidebarProps) {
         )}
       </div>
 
-      {/* Main Navigation */}
       <div className="flex-1 px-3 py-4 space-y-1">
         <nav className="space-y-1">
           {mainMenuItems.map((item) => renderNavItem(item))}
         </nav>
       </div>
 
-      {/* Footer - Settings with gradient */}
       <div className="p-3 border-t bg-gradient-to-t from-muted/10 to-transparent">
         {renderNavItem(settingsItem, true)}
       </div>

@@ -1,4 +1,3 @@
-// components/gallery-modal.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,6 @@ export function GalleryModal({
     setCurrentIndex(slideIndex);
   }, []);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -57,7 +55,6 @@ export function GalleryModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, goToPrevious, goToNext, onClose]);
 
-  // Reset index when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(initialIndex);
@@ -68,7 +65,6 @@ export function GalleryModal({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-      {/* Gallery Header */}
       <div className="flex items-start justify-between p-4 sm:p-6 text-white bg-black/80 backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 max-w-[76vw]">
           <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
@@ -83,9 +79,7 @@ export function GalleryModal({
         </Button>
       </div>
 
-      {/* Main Gallery Image Area */}
       <div className="flex-1 relative flex items-center justify-center">
-        {/* Previous Button */}
         {images.length > 1 && (
           <button
             onClick={goToPrevious}
@@ -96,7 +90,6 @@ export function GalleryModal({
           </button>
         )}
 
-        {/* Main Image */}
         <div className="relative w-full h-full max-w-screen-2xl max-h-[calc(100vh-200px)]">
           <Image
             src={images[currentIndex]}
@@ -108,7 +101,6 @@ export function GalleryModal({
           />
         </div>
 
-        {/* Next Button */}
         {images.length > 1 && (
           <button
             onClick={goToNext}
@@ -120,7 +112,6 @@ export function GalleryModal({
         )}
       </div>
 
-      {/* Thumbnail Strip */}
       {images.length > 1 && (
         <div className="p-4 border-t border-white/20 bg-black/80 backdrop-blur-sm">
           <div className="max-w-screen-2xl mx-auto">

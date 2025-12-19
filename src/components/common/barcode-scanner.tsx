@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Camera, X, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Html5Qrcode } from "html5-qrcode";
+import { Camera } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface BarcodeScannerProps {
   onScanSuccess: (decodedText: string) => void;
@@ -24,7 +23,6 @@ export function BarcodeScanner({
   const [cameras, setCameras] = useState<any[]>([]);
 
   useEffect(() => {
-    // Get available cameras
     Html5Qrcode.getCameras()
       .then((devices) => {
         if (devices && devices.length) {
@@ -51,7 +49,6 @@ export function BarcodeScanner({
       const html5QrCode = new Html5Qrcode("barcode-reader");
       scannerRef.current = html5QrCode;
 
-      // Prefer back camera on mobile
       const cameraId =
         cameras.length > 1
           ? cameras.find((cam) => cam.label.toLowerCase().includes("back"))
@@ -69,13 +66,11 @@ export function BarcodeScanner({
           qrbox: { width: 240, height: 120 },
         },
         (decodedText) => {
-          // Successfully scanned
           onScanSuccess(decodedText);
           stopScanning();
         },
         (errorMessage) => {
-          // Scanning error (not critical, just couldn't decode)
-          // Don't show these errors as they're constant
+          setError(errorMessage);
         }
       );
     } catch (err: any) {

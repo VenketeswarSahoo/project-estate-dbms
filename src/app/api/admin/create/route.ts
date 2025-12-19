@@ -1,4 +1,3 @@
-// app/api/admin/create/route.ts
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
@@ -7,7 +6,6 @@ export async function GET() {
   try {
     await dbConnect();
 
-    // Check if admin exists
     const adminExists = await User.findOne({ email: "admin@estate.com" });
     if (adminExists) {
       return NextResponse.json({
@@ -24,7 +22,6 @@ export async function GET() {
       avatar: "https://github.com/shadcn.png",
     });
 
-    // Remove password from response for security
     const adminWithoutPassword = admin.toObject();
     delete adminWithoutPassword.password;
 

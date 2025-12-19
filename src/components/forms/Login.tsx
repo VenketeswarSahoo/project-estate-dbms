@@ -10,32 +10,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/providers/auth";
+import { useAuthQuery } from "@/lib/hooks/useAuthQuery";
 import React from "react";
-import { toast } from "sonner";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isLoggingIn } = useAuthQuery();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const success = await login(email, password);
-      if (!success) {
-        toast.error("Invalid credentials");
-        setLoading(false);
-      } else {
-        toast.success("Welcome back!");
-      }
-    } catch (error) {
-      toast.error("An error occurred during login");
-      setLoading(false);
+    if (!email || !password) {
+      return;
     }
+
+    login({ email, password });
   };
 
   return (
@@ -48,11 +38,8 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleLogin}
-            className="grid w-full items-center gap-4"
-          >
-            <div className="flex flex-col space-y-1.5">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -60,9 +47,10 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoggingIn}
               />
             </div>
-            <div className="flex flex-col space-y-1.5">
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -71,6 +59,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoggingIn}
               />
             </div>
             <div className="text-xs text-muted-foreground mt-2">
@@ -87,8 +76,8 @@ export default function LoginPage() {
             </div>
             <Button
               type="submit"
-              disabled={loading}
-              loading={loading}
+              disabled={isLoggingIn}
+              loading={isLoggingIn}
               className="w-full mt-2"
             >
               Login

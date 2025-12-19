@@ -1,14 +1,12 @@
 export type Role = "ADMIN" | "AGENT" | "EXECUTOR" | "BENEFICIARY" | "CLIENT";
 
 export interface User {
-  id: string; // Will map to _id from MongoDB
+  id: string;
   name: string;
   email: string;
   role: Role;
   avatar?: string;
   password?: string;
-
-  // Client/Estate specific fields
   address?: string;
   executorId?: string;
   beneficiaryIds?: string[];
@@ -20,13 +18,12 @@ export interface User {
   updatedAt?: string;
 }
 
-// Deprecated: Client is now a User with role="CLIENT"
 export type Client = User;
 
 export type ItemAction = "SALE" | "DISTRIBUTE" | "DONATE" | "OTHER";
 
 export interface Item {
-  id: string; // Will map to _id from MongoDB
+  id: string;
   clientId: string;
   name: string;
   description: string;
@@ -44,11 +41,19 @@ export interface Item {
 }
 
 export interface Message {
-  id: string; // Will map to _id
+  id: string;
   senderId: string;
   receiverId: string;
   itemId?: string;
   content: string;
   timestamp: string;
   read: boolean;
+}
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
 }

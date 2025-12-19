@@ -16,11 +16,24 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { useDeleteItem, useItemMutation, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
-import { ArrowLeft, Loader, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  ChevronLeft,
+  Copy,
+  Download,
+  Loader,
+  Loader2,
+  Printer,
+  Trash2,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,7 +42,7 @@ import { toast } from "sonner";
 export default function ItemDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
@@ -40,12 +53,22 @@ export default function ItemDetailsPage() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const itemId = params.id as string;
   const item = items.find((i: Item) => i.id === itemId);
   const isLoading = isItemsLoading || isUsersLoading;
 
-  // ✅ Move all useEffects before conditional returns
+  const handleCopyUID = () => {
+    navigator.clipboard.writeText(item.uid);
+    setCopied(true);
+    toast.success("UID copied to clipboard");
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
   useEffect(() => {
     if (!isLoading && !item) {
       toast.error("Item not found");
@@ -71,11 +94,10 @@ export default function ItemDetailsPage() {
     }
   }, [deleteDialogOpen, deleteMutation.isPending]);
 
-  // ✅ Now it’s safe to return conditionally
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }
@@ -83,7 +105,7 @@ export default function ItemDetailsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }
@@ -186,13 +208,19 @@ export default function ItemDetailsPage() {
             variant="outline"
             size="icon"
             onClick={() => router.back()}
-            disabled={itemMutation.isPending}
+            aria-label="Go back"
+            title="Navigate back"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="lg:text-2xl text-xl font-bold tracking-tight">
-            Item Details
-          </h2>
+          <div>
+            <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
+              Item Details
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              View and edit item details
+            </p>
+          </div>
         </div>
         {canDelete && (
           <Button
@@ -229,30 +257,65 @@ export default function ItemDetailsPage() {
             <CardHeader>
               <CardTitle>Metadata</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">UID:</span>
-                <span className="font-mono">{item.uid}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Barcode:</span>
-                <div className="flex flex-col items-end gap-2">
-                  <BarcodeDisplay value={item.barcode} />
+            <CardContent className="space-y-6">
+              <div>
+                <div className="space-y-0.5 mb-3">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Unique Identifier
+                  </span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    System-generated ID for tracking
+                  </p>
+                </div>
+
+                <div className="relative">
+                  <Input
+                    value={item.uid}
+                    readOnly
+                    className="pr-12 font-mono text-sm"
+                  />
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPdfModalOpen(true)}
-                    disabled={itemMutation.isPending}
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={handleCopyUID}
+                    title={copied ? "Copied!" : "Copy UID"}
                   >
-                    Print PDF
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-green-500 animate-in fade-in" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 animate-in fade-in" />
+                    )}
+                    <span className="sr-only">Copy UID</span>
                   </Button>
                 </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Created:</span>
-                <span className="text-sm">
-                  {new Date(item.createdAt).toLocaleDateString()}
-                </span>
+
+              <Separator className="my-2" />
+
+              {/* Barcode Section */}
+              <div className="space-y-4">
+                <div className="space-y-0.5">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Barcode
+                  </span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Item identification code
+                  </p>
+                </div>
+
+                <BarcodeDisplay value={item.barcode} />
+
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setPdfModalOpen(true)}
+                  disabled={itemMutation.isPending}
+                >
+                  <Printer className="h-3.5 w-3.5 mr-2" />
+                  Generate Barcode PDF
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -306,7 +369,6 @@ export default function ItemDetailsPage() {
         initialIndex={currentIndex}
       />
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

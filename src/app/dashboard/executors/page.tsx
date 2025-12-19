@@ -30,11 +30,9 @@ export default function ExecutorsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingExecutor, setEditingExecutor] = useState<User | null>(null);
 
-  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [executorToDelete, setExecutorToDelete] = useState<User | null>(null);
 
-  // React Query hooks
   const { data: users = [], isLoading } = useUsers();
   const executors = users.filter((u: User) => u.role === "EXECUTOR");
 
@@ -99,7 +97,6 @@ export default function ExecutorsPage() {
     }
   };
 
-  // Keyboard shortcut for Enter key
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (
@@ -114,7 +111,6 @@ export default function ExecutorsPage() {
     [deleteDialogOpen, deleteMutation.isPending]
   );
 
-  // Add event listener for keyboard shortcuts
   useState(() => {
     if (deleteDialogOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -157,7 +153,6 @@ export default function ExecutorsPage() {
 
       <ExecutorTable executors={executors} onAction={handleAction} />
 
-      {/* Delete Dialog - Now outside DataTable */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

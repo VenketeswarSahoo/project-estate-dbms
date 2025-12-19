@@ -2,24 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/useAppStore";
 import {
   Camera,
   LayoutDashboard,
-  Settings,
-  Users,
   MessageSquare,
   Package,
+  Settings,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { MobileScanDialog } from "./mobile-scan-dialog";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/providers/auth";
 
 export function FloatingScanButton() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const isAdmin = user?.role === "ADMIN";
 

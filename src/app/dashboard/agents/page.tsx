@@ -30,11 +30,9 @@ export default function AgentsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<User | null>(null);
 
-  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<User | null>(null);
 
-  // React Query hooks
   const { data: users = [], isLoading } = useUsers();
   const agents = users.filter((u: User) => u.role === "AGENT");
 
@@ -99,7 +97,6 @@ export default function AgentsPage() {
     }
   };
 
-  // Keyboard shortcut for Enter key
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -153,7 +150,6 @@ export default function AgentsPage() {
 
       <AgentTable agents={agents} onAction={handleAction} />
 
-      {/* Delete Dialog - Now outside DataTable */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

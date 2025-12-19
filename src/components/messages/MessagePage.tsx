@@ -14,17 +14,16 @@ import {
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
-import { Search } from "lucide-react";
+import { Loader, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function MessagesPage() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const [search, setSearch] = useState("");
   const [userFilter, setUserFilter] = useState<string>("ALL");
 
-  // React Query hooks
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
@@ -33,7 +32,6 @@ export default function MessagesPage() {
 
   if (!user) return null;
 
-  // Filter messages for current user
   const myMessages = useMemo(
     () =>
       messages.filter(
@@ -42,7 +40,6 @@ export default function MessagesPage() {
     [messages, user]
   );
 
-  // Identify relevant items (threads)
   const myItemIds = useMemo(
     () =>
       new Set(
@@ -51,7 +48,6 @@ export default function MessagesPage() {
     [myMessages]
   );
 
-  // Apply Search
   let filteredItems = useMemo(
     () =>
       items.filter(
@@ -63,7 +59,6 @@ export default function MessagesPage() {
     [items, myItemIds, search]
   );
 
-  // Apply User Filter
   if (userFilter !== "ALL") {
     filteredItems = filteredItems.filter((item: Item) => {
       const itemMsgs = myMessages.filter((m: Message) => m.itemId === item.id);
@@ -73,7 +68,6 @@ export default function MessagesPage() {
     });
   }
 
-  // Identify Interlocutors for Filter
   const myInterlocutorIds = useMemo(() => {
     const ids = new Set<string>();
     myMessages.forEach((m: Message) => {
@@ -91,7 +85,7 @@ export default function MessagesPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }

@@ -8,9 +8,9 @@ import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessageMutation, useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message } from "@/types";
-import { Mic, MicOff, Send } from "lucide-react";
+import { Loader, Mic, MicOff, Send } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -19,9 +19,8 @@ export default function MessageDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get("userId");
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
-  // React Query hooks
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
@@ -97,7 +96,7 @@ export default function MessageDetailPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }
@@ -105,7 +104,7 @@ export default function MessageDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }

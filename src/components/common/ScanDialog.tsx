@@ -85,7 +85,6 @@ export function ScanDialog() {
             </TabsTrigger>
           </TabsList>
 
-          {/* SCAN TAB */}
           <TabsContent value="scan" className="mt-4 space-y-4">
             <Card className="p-4">
               <BarcodeScanner
@@ -96,7 +95,6 @@ export function ScanDialog() {
             </Card>
           </TabsContent>
 
-          {/* MANUAL TAB */}
           <TabsContent value="manual" className="mt-4 space-y-4">
             <Card className="p-6">
               <form onSubmit={handleManualSubmit} className="space-y-4">

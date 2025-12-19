@@ -1,12 +1,11 @@
-// components/item-grid-view.tsx
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAppStore } from "@/store/useAppStore";
 import { Client, Item } from "@/types";
 import { BadgeCheck, Eye, Pencil, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ImageSlider } from "../slider/image-slider";
-import { useAuth } from "@/providers/auth";
 
 interface ItemGridViewProps {
   items: Item[];
@@ -26,7 +25,7 @@ export function ItemGridView({
   showPhotos,
 }: ItemGridViewProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   if (!showPhotos) {
     return (
@@ -47,7 +46,6 @@ export function ItemGridView({
                   selectedItems.includes(item.id) ? "ring-2 ring-primary" : ""
                 }`}
               >
-                {/* Selection checkbox */}
                 <div
                   className={`absolute ${
                     showPhotos ? "top-6 left-6" : "top-6 right-6"
@@ -63,7 +61,6 @@ export function ItemGridView({
                   />
                 </div>
 
-                {/* Item Details */}
                 <div className="space-y-3 pt-2">
                   <div>
                     <h3 className="font-semibold text-lg flex-wrap">
@@ -146,7 +143,6 @@ export function ItemGridView({
                 selectedItems.includes(item.id) ? "ring-2 ring-primary" : ""
               }`}
             >
-              {/* Selection checkbox */}
               <div
                 className="absolute top-5 left-5 z-10 cursor-pointer"
                 onClick={(e) => e.stopPropagation()}
@@ -160,10 +156,8 @@ export function ItemGridView({
                 />
               </div>
 
-              {/* Image Slider */}
               <ImageSlider images={item.photos || []} itemName={item.name} />
 
-              {/* Item Details */}
               <div className="space-y-3">
                 <div>
                   <h3 className="font-semibold text-lg flex-wrap">

@@ -1,25 +1,26 @@
+import { CurrentUser } from "@/types";
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { User } from "@/types";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface AppState {
-  currentUser: User | null;
-  setCurrentUser: (user: User | null) => void;
-  logout: () => void;
-
-  // UI / app state examples
+  token: string | null;
+  user: CurrentUser | null;
   sidebarOpen: boolean;
+
+  setAuth: (token: string, user: CurrentUser) => void;
+  clearAuth: () => void;
   toggleSidebar: () => void;
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      currentUser: null,
-      setCurrentUser: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null }),
-
+      token: null,
+      user: null,
       sidebarOpen: false,
+
+      setAuth: (token, user) => set({ token, user }),
+      clearAuth: () => set({ token: null, user: null }),
       toggleSidebar: () =>
         set((state) => ({ sidebarOpen: !state.sidebarOpen })),
     }),

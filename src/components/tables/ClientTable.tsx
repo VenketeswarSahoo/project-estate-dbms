@@ -28,7 +28,6 @@ interface ClientTableProps {
   onAction: (client: User, action: "edit" | "delete" | "view") => void;
 }
 
-// Define columns for TanStack Table
 const getColumns = (
   router: ReturnType<typeof useRouter>,
   users: User[],
@@ -142,7 +141,6 @@ const getColumns = (
 export function ClientTable({ clients, users, onAction }: ClientTableProps) {
   const router = useRouter();
 
-  // Create handlers that use the onAction prop
   const handleEdit = React.useCallback(
     (client: User) => {
       onAction(client, "edit");

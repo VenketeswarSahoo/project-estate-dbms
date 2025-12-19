@@ -3,19 +3,18 @@
 import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
 import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Client } from "@/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function EditClientPage() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const router = useRouter();
   const params = useParams();
 
-  // React Query hooks
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const userMutation = useUserMutation();
 
@@ -23,7 +22,6 @@ export default function EditClientPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Find client from users data
     const found = users?.find(
       (c: any) => c.id === params.id && c.role === "CLIENT"
     );
@@ -65,7 +63,7 @@ export default function EditClientPage() {
   if (isLoading || isUsersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }

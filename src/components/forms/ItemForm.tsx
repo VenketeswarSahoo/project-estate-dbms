@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useItemPhotosUpload } from "@/hooks/use-item-photos-upload";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Client, Item } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image as ImageIcon, Upload, X } from "lucide-react";
@@ -63,7 +63,7 @@ export function ItemForm({
   isReadOnly = false,
   loading = false,
 }: ItemFormProps) {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [galleryOpen, setGalleryOpen] = React.useState(false);

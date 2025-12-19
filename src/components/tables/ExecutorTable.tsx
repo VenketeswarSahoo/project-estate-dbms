@@ -25,7 +25,6 @@ interface ExecutorTableProps {
   onAction: (executor: User, action: "edit" | "delete" | "view") => void;
 }
 
-// Define columns for TanStack Table
 const getColumns = (
   onEdit: (executor: User) => void,
   onDeleteClick: (executor: User) => void
@@ -127,7 +126,6 @@ const getColumns = (
 ];
 
 export function ExecutorTable({ executors, onAction }: ExecutorTableProps) {
-  // Create handlers that use the onAction prop
   const handleEdit = React.useCallback(
     (executor: User) => {
       onAction(executor, "edit");

@@ -36,14 +36,12 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Update normal fields
     const { password, ...otherFields } = data;
     Object.assign(user, otherFields);
 
-    // If password is provided, set it explicitly to trigger pre-save hook
     if (password) {
       user.password = password;
-      user.markModified("password"); // <-- important
+      user.markModified("password");
     }
 
     await user.save();

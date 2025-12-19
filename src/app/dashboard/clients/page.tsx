@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useDeleteUser, useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { User } from "@/types";
 import { Loader, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,17 +22,14 @@ import { toast } from "sonner";
 
 export default function ClientsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
-  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<User | null>(null);
 
-  // React Query hooks
   const { data: users = [], isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
 
-  // Filter clients
   const clients = users.filter((u: User) => u.role === "CLIENT");
 
   if (!user || user.role !== "ADMIN") {
@@ -70,7 +67,6 @@ export default function ClientsPage() {
     }
   };
 
-  // Keyboard shortcut for Enter key
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (
@@ -85,7 +81,6 @@ export default function ClientsPage() {
     [deleteDialogOpen, deleteMutation.isPending]
   );
 
-  // Add event listener for keyboard shortcuts
   useState(() => {
     if (deleteDialogOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -109,7 +104,6 @@ export default function ClientsPage() {
 
       <ClientTable clients={clients} users={users} onAction={handleAction} />
 
-      {/* Delete Dialog - Now outside DataTable */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

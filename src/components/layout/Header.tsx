@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { useAppSidebar } from "@/hooks/use-app-sidebar";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
+import { useAuthQuery } from "@/lib/hooks/useAuthQuery";
 import { LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ScanDialog } from "../common/ScanDialog";
@@ -15,17 +16,17 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Input } from "../ui/input";
+
 const Header = () => {
-  const { user, logout } = useAuth();
+  const user = useAppStore((state) => state.user);
+  const toggleSidebar = useAppStore((state) => state.toggleSidebar);
+
+  const { logout } = useAuthQuery();
+
   const { setTheme, theme } = useTheme();
 
-  const {
-    isMobileOpen,
-    isDesktopCollapsed,
-    closeMobile,
-    toggleSidebar,
-    isDesktop,
-  } = useAppSidebar();
+  const { isDesktopCollapsed } = useAppSidebar();
+
   return (
     <header
       className={`flex items-center justify-between px-4 md:px-6 border-b ${
@@ -45,7 +46,7 @@ const Header = () => {
             <X className="h-5 w-5" />
           )}
         </Button>
-        <div className=" lg:block hidden">
+        <div className="lg:block hidden">
           <div className="relative flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -59,7 +60,7 @@ const Header = () => {
           </div>
         </div>
       </div>
-      {/* Right side */}
+
       <div className="flex items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -100,7 +101,7 @@ const Header = () => {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={logout}
+              onClick={() => logout()}
               className="text-red-600 focus:text-red-600"
             >
               <LogOut className="mr-2 h-4 w-4" />

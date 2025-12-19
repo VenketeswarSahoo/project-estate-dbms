@@ -1,8 +1,7 @@
-// pages/api/users/me.ts
-import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/utils/jwt";
 import dbConnect from "@/lib/db";
+import { verifyToken } from "@/lib/utils/jwt";
 import User from "@/models/User";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   await dbConnect();

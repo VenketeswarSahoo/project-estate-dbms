@@ -1,4 +1,3 @@
-// components/tables/BeneficiaryTable.tsx
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +25,6 @@ interface BeneficiaryTableProps {
   onAction: (beneficiary: User, action: "edit" | "delete" | "view") => void;
 }
 
-// Define columns for TanStack Table
 const getColumns = (
   onEdit: (beneficiary: User) => void,
   onDeleteClick: (beneficiary: User) => void
@@ -131,7 +129,6 @@ export function BeneficiaryTable({
   beneficiaries,
   onAction,
 }: BeneficiaryTableProps) {
-  // Create handlers that use the onAction prop
   const handleEdit = React.useCallback(
     (beneficiary: User) => {
       onAction(beneficiary, "edit");

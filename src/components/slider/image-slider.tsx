@@ -1,4 +1,3 @@
-// components/image-slider.tsx (updated to use GalleryModal)
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -43,7 +42,6 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
     setCurrentIndex(slideIndex);
   }, []);
 
-  // Touch gesture handlers
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -83,9 +81,7 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
 
   return (
     <>
-      {/* Image Slider */}
       <div className="aspect-square relative overflow-hidden rounded-lg bg-muted group">
-        {/* Main Image */}
         <div
           className="w-full h-full"
           onTouchStart={onTouchStart}
@@ -103,7 +99,6 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
           />
         </div>
 
-        {/* Navigation Arrows */}
         {images.length > 1 && (
           <>
             <button
@@ -123,12 +118,10 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
           </>
         )}
 
-        {/* Image Counter */}
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
           {currentIndex + 1} / {images.length}
         </div>
 
-        {/* Dots Indicator */}
         {images.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
             {images.map((_, index) => (
@@ -150,7 +143,6 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
         )}
       </div>
 
-      {/* Gallery Modal */}
       <GalleryModal
         images={images}
         title={itemName}

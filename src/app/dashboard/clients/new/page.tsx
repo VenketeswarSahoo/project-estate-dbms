@@ -3,16 +3,15 @@
 import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
 import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function NewClientPage() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const router = useRouter();
 
-  // React Query hooks
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const userMutation = useUserMutation();
 

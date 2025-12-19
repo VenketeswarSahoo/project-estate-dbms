@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 
 export function RecentMessagesList() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const router = useRouter();
 
   const { data: items = [], isLoading: isItemsLoading } = useItems();
@@ -19,12 +19,10 @@ export function RecentMessagesList() {
 
   if (!user) return null;
 
-  // Filter messages for current user
   const myMessages = messages.filter(
     (m: Message) => m.senderId === user.id || m.receiverId === user.id
   );
 
-  // Group by Item to get threads
   const threads = items
     .map((item: Item) => {
       const itemMessages = myMessages.filter(
@@ -32,7 +30,6 @@ export function RecentMessagesList() {
       );
       if (itemMessages.length === 0) return null;
 
-      // Sort to find latest
       const latest = itemMessages.sort(
         (a: Message, b: Message) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

@@ -5,17 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useItemMutation } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { User } from "@/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function NewItemPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
-  // React Query hooks
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const itemMutation = useItemMutation();
 
@@ -45,7 +44,7 @@ export default function NewItemPage() {
   if (isUsersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }
@@ -53,10 +52,23 @@ export default function NewItemPage() {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => router.back()}
+          aria-label="Go back"
+          title="Navigate back"
+        >
+          <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-2xl font-bold tracking-tight">New Item</h2>
+        <div>
+          <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            Create New Item
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Add a new item to your inventory
+          </p>
+        </div>
       </div>
 
       <Card>

@@ -94,12 +94,10 @@ export const MessageThread = forwardRef<HTMLDivElement, MessageThreadProps>(
                           : "bg-gradient-to-br from-white to-white/90 dark:from-card dark:to-card/80 border border-border/50 shadow-md rounded-tl-none"
                       )}
                     >
-                      {/* Gold border effect for user messages */}
                       {isMe && (
                         <div className="absolute inset-0 border-t-[2px] border-white/50 rounded-2xl rounded-tr-none scale-[0.98] pointer-events-none" />
                       )}
 
-                      {/* Subtle pattern for other user messages */}
                       {!isMe && (
                         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 rounded-2xl rounded-tl-none opacity-50 pointer-events-none" />
                       )}

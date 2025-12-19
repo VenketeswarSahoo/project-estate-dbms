@@ -32,13 +32,11 @@ export default function BeneficiariesPage() {
     null
   );
 
-  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [beneficiaryToDelete, setBeneficiaryToDelete] = useState<User | null>(
     null
   );
 
-  // React Query hooks
   const { data: users = [], isLoading } = useUsers();
   const beneficiaries = users.filter((u: User) => u.role === "BENEFICIARY");
 
@@ -103,7 +101,6 @@ export default function BeneficiariesPage() {
     }
   };
 
-  // Keyboard shortcut for Enter key
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
@@ -159,7 +156,6 @@ export default function BeneficiariesPage() {
 
       <BeneficiaryTable beneficiaries={beneficiaries} onAction={handleAction} />
 
-      {/* Delete Dialog - Now outside DataTable */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -1,12 +1,10 @@
-// lib/hooks/useMessageUtils.ts
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { useMemo } from "react";
 import { useMessageMutation, useMessages } from "../hooks/useMessages";
 import { useUsers } from "../hooks/useUsers";
 
-// Hook to get messages for current user
 export function useUserMessages() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const { data: messages = [], isLoading } = useMessages();
 
   const userMessages = useMemo(() => {
@@ -19,9 +17,8 @@ export function useUserMessages() {
   return { messages: userMessages, isLoading };
 }
 
-// Hook to get unread message count for current user
 export function useUnreadMessageCount() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const { data: messages = [], isLoading } = useMessages();
 
   const unreadCount = useMemo(() => {
@@ -34,16 +31,14 @@ export function useUnreadMessageCount() {
   return { count: unreadCount, isLoading };
 }
 
-// Hook to get conversations for current user
 export function useUserConversations() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const { data: messages = [], isLoading: messagesLoading } = useMessages();
   const { data: users = [], isLoading: usersLoading } = useUsers();
 
   const conversations = useMemo(() => {
     if (!user || messagesLoading || usersLoading) return [];
 
-    // Group messages by conversation partner
     const conversationsMap = new Map();
 
     messages.forEach((msg: any) => {
@@ -82,7 +77,6 @@ export function useUserConversations() {
   return { conversations, isLoading: messagesLoading || usersLoading };
 }
 
-// Hook to mark messages as read
 export function useMarkAsRead() {
   const { data: messages = [] } = useMessages();
   const messageMutation = useMessageMutation();

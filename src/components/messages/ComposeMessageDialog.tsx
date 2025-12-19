@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessageMutation } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -38,10 +38,9 @@ export function ComposeMessageDialog({
   onOpenChange,
 }: ComposeMessageDialogProps) {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { user } = useAppStore();
   const messageMutation = useMessageMutation();
 
-  // React Query hooks for data if not provided via props
   const { data: usersData = [] } = useUsers();
   const { data: itemsData = [] } = useItems();
 
@@ -83,7 +82,6 @@ export function ComposeMessageDialog({
           setOpen(false);
           onOpenChange?.(false);
 
-          // Reset form
           setReceiverId("");
           setItemId("");
           setContent("");
@@ -96,7 +94,6 @@ export function ComposeMessageDialog({
     );
   };
 
-  // Get clients from users array (users with role CLIENT)
   const clients = useMemo(
     () => (users || []).filter((u: User) => u.role === "CLIENT"),
     [users]
@@ -107,7 +104,6 @@ export function ComposeMessageDialog({
       (users || []).filter((u: User) => {
         if (!user || u.id === user.id) return false;
 
-        // RBAC Logic
         switch (user.role) {
           case "ADMIN":
             return true; // Admin can message everyone

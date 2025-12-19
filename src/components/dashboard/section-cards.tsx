@@ -11,12 +11,12 @@ import {
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 export function SectionCards() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
@@ -24,16 +24,13 @@ export function SectionCards() {
 
   if (!user) return null;
 
-  // 1. Calculate Stats
   const clients = users.filter((u: User) => u.role === "CLIENT");
   const totalClients = clients.length;
 
-  // Filter messages
   const myGenericMessages = messages.filter(
     (m: Message) => m.receiverId === user.id && !m.read
   );
 
-  // Filter Items based on Role
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myClientIds = clients
@@ -47,7 +44,7 @@ export function SectionCards() {
     myItems = items.filter((i: Item) => myClientIds.includes(i.clientId));
   }
 
-  const lowStockItems = myItems.length; // Just total items for now
+  const lowStockItems = myItems.length;
   const pendingDistributions = myItems.filter(
     (i: Item) => i.action === "DISTRIBUTE"
   ).length;

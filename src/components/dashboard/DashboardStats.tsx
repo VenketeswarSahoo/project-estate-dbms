@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
 import { ArrowRightLeft, MessageSquare, Package, Users } from "lucide-react";
 
 export function DashboardStats() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const { data: items } = useItems();
   const { data: users } = useUsers();
@@ -17,15 +17,12 @@ export function DashboardStats() {
 
   if (!user) return null;
 
-  // 1. Calculate Stats
   const totalClients = users.filter((u: User) => u.role === "CLIENT").length;
 
-  // Filter messages
   const myGenericMessages = messages.filter(
     (m: Message) => m.receiverId === user.id && !m.read
   );
 
-  // Filter Items based on Role
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myClientIds = users
@@ -67,7 +64,6 @@ export function DashboardStats() {
         </Card>
       )}
 
-      {/* Total Items */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Items</CardTitle>
@@ -79,7 +75,6 @@ export function DashboardStats() {
         </CardContent>
       </Card>
 
-      {/* Distributions / Sales Stats */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
@@ -93,7 +88,6 @@ export function DashboardStats() {
         </CardContent>
       </Card>
 
-      {/* Unread Messages */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>

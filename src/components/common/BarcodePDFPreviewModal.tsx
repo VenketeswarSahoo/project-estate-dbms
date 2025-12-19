@@ -55,7 +55,7 @@ export function BarcodePDFSheet({
         <SheetHeader>
           <SheetTitle className="font-bold">Generate Barcode PDF</SheetTitle>
         </SheetHeader>
-        {/* PDF Preview */}
+
         <div className="border rounded-md overflow-hidden h-[480px]">
           {pdfUrl ? (
             <iframe
@@ -70,7 +70,6 @@ export function BarcodePDFSheet({
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-between items-end mt-6">
           <div>
             <span className="text-sm font-medium">Number of Barcodes:</span>

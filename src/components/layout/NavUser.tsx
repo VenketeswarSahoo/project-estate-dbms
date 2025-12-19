@@ -4,11 +4,9 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Settings,
 } from "lucide-react";
-import { useAuth } from "@/providers/auth";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -26,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAppStore } from "@/store/useAppStore";
 
 interface NavUserProps {
   user: {
@@ -37,7 +36,7 @@ interface NavUserProps {
 
 export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
-  const { logout } = useAuth();
+  const { logout } = useAppStore();
 
   const handleLogout = () => {
     logout();

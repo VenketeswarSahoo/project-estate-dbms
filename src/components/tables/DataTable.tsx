@@ -76,11 +76,9 @@ export function DataTable<TData>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    // Custom global filter function
     globalFilterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
 
-      // Check all string columns
       return Object.keys(row.original as object).some((key) => {
         const value = (row.original as any)[key];
         return (
@@ -90,7 +88,6 @@ export function DataTable<TData>({
     },
   });
 
-  // Update pagination when page size changes
   const handleRowsPerPageChange = (value: string) => {
     const newPageSize = parseInt(value);
     table.setPageSize(newPageSize);
@@ -98,7 +95,6 @@ export function DataTable<TData>({
 
   return (
     <div className="space-y-4">
-      {/* Search Input */}
       {searchField && (
         <div className="relative w-full lg:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -111,7 +107,6 @@ export function DataTable<TData>({
         </div>
       )}
 
-      {/* Table */}
       <Card className="p-0 overflow-hidden">
         <Table>
           <TableHeader>
@@ -164,7 +159,6 @@ export function DataTable<TData>({
         </Table>
       </Card>
 
-      {/* Pagination Controls */}
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 py-2">
         <div className="text-sm text-muted-foreground order-2 lg:order-1">
           Showing{" "}

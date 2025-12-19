@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Client, Item, User } from "@/types";
 import { type ColumnDef } from "@tanstack/react-table";
 import {
@@ -61,7 +61,6 @@ interface ItemTableProps {
 
 type ViewMode = "list" | "grid";
 
-// Define columns for TanStack Table
 const getColumns = (
   router: ReturnType<typeof useRouter>,
   clients: Client[],
@@ -294,7 +293,7 @@ export function ItemTable({
 }: ItemTableProps) {
   const router = useRouter();
 
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showPhotos, setShowPhotos] = useState(false);
@@ -304,7 +303,6 @@ export function ItemTable({
   const [clientFilter, setClientFilter] = useState("ALL");
   const [bulkAction, setBulkAction] = useState("");
 
-  // Handle individual item selection
   const handleSelectItem = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedItems((prev) => [...prev, id]);
@@ -313,7 +311,6 @@ export function ItemTable({
     }
   };
 
-  // Handle bulk actions
   const handleBulkAction = (action: string) => {
     toast.success(
       `${action} set to ${selectedItems.length} ${
@@ -328,7 +325,6 @@ export function ItemTable({
     setSelectedItems([]);
   };
 
-  // Filter items
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
       const term = searchQuery.toLowerCase();
@@ -365,7 +361,6 @@ export function ItemTable({
 
   return (
     <div className="space-y-4">
-      {/* Search and Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between md:items-end lg:items-center">
         <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           <div className="relative w-full lg:w-72">
@@ -405,7 +400,6 @@ export function ItemTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Client Filter (Admin/Agent only) */}
           {canEdit && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -441,7 +435,6 @@ export function ItemTable({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* View Mode Toggle */}
           <div className="flex items-center border rounded-md">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -481,7 +474,6 @@ export function ItemTable({
             </Tooltip>
           </div>
 
-          {/* View Options */}
           <div className="flex items-center space-x-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -516,7 +508,6 @@ export function ItemTable({
         </div>
       </div>
 
-      {/* Bulk Actions */}
       {selectedItems.length > 0 && canEdit && (
         <div className="flex flex-wrap items-center gap-2 p-2 bg-muted rounded-md text-sm animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center">
@@ -554,7 +545,6 @@ export function ItemTable({
         </div>
       )}
 
-      {/* Main Content */}
       {viewMode === "list" ? (
         <DataTable
           data={filteredItems}

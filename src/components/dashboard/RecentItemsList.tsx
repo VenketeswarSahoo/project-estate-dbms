@@ -4,19 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
 export function RecentItemsList() {
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
 
   if (!user) return null;
 
-  // Filter Items based on Role (Same logic as stats)
   let myItems = items;
   if (user.role === "EXECUTOR") {
     const myUserIds = users

@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDeleteItem, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
-import { useAuth } from "@/providers/auth";
+import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
 import { Loader, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -23,26 +23,22 @@ import { toast } from "sonner";
 
 export default function ItemsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAppStore();
 
-  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
 
-  // React Query hooks
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const deleteMutation = useDeleteItem();
 
   const isLoading = isItemsLoading || isUsersLoading;
 
-  // Filter clients
   const clients = useMemo(
     () => users.filter((u: User) => u.role === "CLIENT"),
     [users]
   );
 
-  // Filter items based on user role
   const visibleItems = useMemo(() => {
     if (!user || isLoading) return [];
 
@@ -110,7 +106,6 @@ export default function ItemsPage() {
     }
   };
 
-  // Keyboard shortcut for Enter key
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (
@@ -125,7 +120,6 @@ export default function ItemsPage() {
     [deleteDialogOpen, deleteMutation.isPending]
   );
 
-  // Add event listener for keyboard shortcuts
   useState(() => {
     if (deleteDialogOpen) {
       window.addEventListener("keydown", handleKeyDown);
@@ -138,7 +132,7 @@ export default function ItemsPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader className="animate-spin h-8 w-8" />
       </div>
     );
   }
@@ -165,7 +159,7 @@ export default function ItemsPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader className="animate-spin h-8 w-8" />
         </div>
       ) : (
         <ItemTable
@@ -176,7 +170,6 @@ export default function ItemsPage() {
         />
       )}
 
-      {/* Delete Dialog - Now outside DataTable */}
       <AlertDialog open={deleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

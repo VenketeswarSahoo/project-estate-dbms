@@ -1,7 +1,6 @@
-import mongoose, { Schema, Model, Document } from "mongoose";
 import bcrypt from "bcrypt";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
-// Define interface for User document
 interface IUser extends Document {
   name: string;
   email: string;
