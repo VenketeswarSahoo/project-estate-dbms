@@ -1,5 +1,6 @@
 "use client";
 
+import HeadingText from "@/components/common/HeadingText";
 import { BeneficiaryForm } from "@/components/forms/BeneficiaryForm";
 import { BeneficiaryTable } from "@/components/tables/BeneficiaryTable";
 import {
@@ -124,7 +125,10 @@ export default function BeneficiariesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Beneficiaries</h2>
+        <HeadingText
+          title="Beneficiaries Management"
+          subtitle="Manage and track all your beneficiaries efficiently."
+        />
         <Dialog
           open={isOpen}
           onOpenChange={(open) => {

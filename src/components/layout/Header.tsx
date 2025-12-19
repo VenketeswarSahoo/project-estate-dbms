@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { useAppSidebar } from "@/hooks/use-app-sidebar";
-import { useAppStore } from "@/store/useAppStore";
 import { useAuthQuery } from "@/lib/hooks/useAuthQuery";
+import { useAppStore } from "@/store/useAppStore";
 import { LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ScanDialog } from "../common/ScanDialog";
@@ -19,13 +19,11 @@ import { Input } from "../ui/input";
 
 const Header = () => {
   const user = useAppStore((state) => state.user);
-  const toggleSidebar = useAppStore((state) => state.toggleSidebar);
+  const { toggleSidebar, isDesktopCollapsed } = useAppSidebar();
 
   const { logout } = useAuthQuery();
 
   const { setTheme, theme } = useTheme();
-
-  const { isDesktopCollapsed } = useAppSidebar();
 
   return (
     <header

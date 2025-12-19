@@ -1,5 +1,6 @@
 "use client";
 
+import HeadingText from "@/components/common/HeadingText";
 import { ExecutorForm } from "@/components/forms/ExecutorForm";
 import { ExecutorTable } from "@/components/tables/ExecutorTable";
 import {
@@ -123,7 +124,10 @@ export default function ExecutorsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Executors</h2>
+        <HeadingText
+          title="Executor Management"
+          subtitle="Manage and track all your executors efficiently."
+        />
         <Dialog
           open={isOpen}
           onOpenChange={(open) => {

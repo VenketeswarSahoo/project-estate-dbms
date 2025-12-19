@@ -1,5 +1,6 @@
 "use client";
 
+import HeadingText from "@/components/common/HeadingText";
 import { ItemTable } from "@/components/tables/ItemTable";
 import {
   AlertDialog,
@@ -140,7 +141,11 @@ export default function ItemsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Estate Items</h2>
+        <HeadingText
+          title="Item List"
+          subtitle="Organize and track all your items efficiently."
+        />
+
         {canEdit && (
           <>
             <div className="lg:hidden block">

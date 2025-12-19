@@ -18,6 +18,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { Item, Message, User } from "@/types";
 import { Loader, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import HeadingText from "../common/HeadingText";
 
 export default function MessagesPage() {
   const { user } = useAppStore();
@@ -93,7 +94,10 @@ export default function MessagesPage() {
   return (
     <div className="space-y-4 md:space-y-6 h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] flex flex-col">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight">Messages</h2>
+        <HeadingText
+          title="Messages"
+          subtitle="Manage and track your conversations with other users."
+        />
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -122,7 +126,7 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      <Card className="flex-1 p-0 overflow-hidden border-0 sm:border">
+      <Card className="flex-1 p-0 overflow-hidden">
         <MessageList
           items={filteredItems}
           messages={myMessages}

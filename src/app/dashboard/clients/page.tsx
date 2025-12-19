@@ -1,5 +1,6 @@
 "use client";
 
+import HeadingText from "@/components/common/HeadingText";
 import { ClientTable } from "@/components/tables/ClientTable";
 import {
   AlertDialog,
@@ -93,7 +94,11 @@ export default function ClientsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Clients</h2>
+        <HeadingText
+          title="Clients Management"
+          subtitle="Manage and track all your clients efficiently."
+        />
+
         <Button
           onClick={() => router.push("/dashboard/clients/new")}
           disabled={isLoading}

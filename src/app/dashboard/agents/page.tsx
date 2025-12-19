@@ -1,5 +1,6 @@
 "use client";
 
+import HeadingText from "@/components/common/HeadingText";
 import { AgentForm } from "@/components/forms/AgentForm";
 import { AgentTable } from "@/components/tables/AgentTable";
 import {
@@ -120,7 +121,10 @@ export default function AgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Agents</h2>
+        <HeadingText
+          title="Agent Management"
+          subtitle="Manage and track all your agents efficiently."
+        />
         <Dialog
           open={isOpen}
           onOpenChange={(open) => {
