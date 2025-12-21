@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
 import { Client } from "@/types";
-import { ArrowLeft, Loader } from "lucide-react";
+import { ChevronLeft, Loader } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -88,7 +88,7 @@ export default function EditClientPage() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ChevronLeft className="mr-2 h-4 w-4" />
           </Button>
           <h2 className="text-2xl font-bold tracking-tight">Edit Client</h2>
         </div>

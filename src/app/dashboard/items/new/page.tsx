@@ -7,7 +7,7 @@ import { useItemMutation } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
 import { User } from "@/types";
-import { ArrowLeft, ChevronLeft, Loader } from "lucide-react";
+import { ChevronLeft, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 

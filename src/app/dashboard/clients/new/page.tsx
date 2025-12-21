@@ -4,7 +4,7 @@ import { ClientForm } from "@/components/forms/ClientForm";
 import { Button } from "@/components/ui/button";
 import { useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -42,7 +42,7 @@ export default function NewClientPage() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ChevronLeft className="mr-2 h-4 w-4" />
           </Button>
           <h2 className="text-2xl font-bold tracking-tight">Add New Client</h2>
         </div>

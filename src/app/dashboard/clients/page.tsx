@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeleteUser, useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
 import { User } from "@/types";
@@ -30,6 +31,7 @@ export default function ClientsPage() {
 
   const { data: users = [], isLoading } = useUsers();
   const deleteMutation = useDeleteUser();
+  const isMobile = useIsMobile();
 
   const clients = users.filter((u: User) => u.role === "CLIENT");
 
@@ -95,8 +97,10 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <HeadingText
-          title="Clients Management"
-          subtitle="Manage and track all your clients efficiently."
+          title={isMobile ? "Clients" : "Clients Management"}
+          subtitle={
+            isMobile ? "" : "Manage and track all your clients efficiently."
+          }
         />
 
         <Button

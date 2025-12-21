@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeleteUser, useUserMutation, useUsers } from "@/lib/hooks/useUsers";
 import { User } from "@/types";
 import { Loader, Plus } from "lucide-react";
@@ -39,7 +40,7 @@ export default function ExecutorsPage() {
 
   const userMutation = useUserMutation();
   const deleteMutation = useDeleteUser();
-
+  const isMobile = useIsMobile();
   const handleSubmit = async (formData: {
     name: string;
     email: string;
@@ -125,8 +126,10 @@ export default function ExecutorsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <HeadingText
-          title="Executor Management"
-          subtitle="Manage and track all your executors efficiently."
+          title={isMobile ? "Executors" : "Executor Management"}
+          subtitle={
+            isMobile ? "" : "Manage and track all your executors efficiently."
+          }
         />
         <Dialog
           open={isOpen}

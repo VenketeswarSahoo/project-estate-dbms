@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useDeleteItem, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
@@ -32,6 +33,7 @@ export default function ItemsPage() {
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const deleteMutation = useDeleteItem();
+  const isMobile = useIsMobile();
 
   const isLoading = isItemsLoading || isUsersLoading;
 
@@ -142,8 +144,10 @@ export default function ItemsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <HeadingText
-          title="Item List"
-          subtitle="Organize and track all your items efficiently."
+          title="Items"
+          subtitle={
+            isMobile ? "" : "Organize and track all your items efficiently."
+          }
         />
 
         {canEdit && (

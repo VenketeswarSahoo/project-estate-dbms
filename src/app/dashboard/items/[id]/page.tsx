@@ -23,13 +23,10 @@ import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
 import {
-  ArrowLeft,
   Check,
   ChevronLeft,
   Copy,
-  Download,
   Loader,
-  Loader2,
   Printer,
   Trash2,
   X,
