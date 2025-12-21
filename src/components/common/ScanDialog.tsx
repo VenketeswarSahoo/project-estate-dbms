@@ -30,7 +30,6 @@ export function ScanDialog() {
 
   const handleScanSuccess = (decodedText: string) => {
     toast.success(`Barcode scanned: ${decodedText}`);
-    console.log(decodedText);
     setOpen(false);
     const item = items.find((item: Item) => item.barcode === decodedText);
 

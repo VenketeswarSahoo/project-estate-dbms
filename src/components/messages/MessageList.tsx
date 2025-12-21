@@ -13,6 +13,9 @@ interface MessageListProps {
   items: Item[];
   messages: Message[];
   users: User[];
+  selectedItemId?: string | null;
+  selectedUserId?: string | null;
+  onSelectThread?: (itemId: string, userId: string) => void;
 }
 
 function formatTimeAgo(date: Date): string {
@@ -32,9 +35,18 @@ function formatTimeAgo(date: Date): string {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-export function MessageList({ items, messages, users }: MessageListProps) {
+export function MessageList({
+  items,
+  messages,
+  users,
+  selectedItemId,
+  selectedUserId,
+  onSelectThread,
+}: MessageListProps) {
   const router = useRouter();
   const { user } = useAppStore();
+  const isMobile =
+    typeof window !== "undefined" ? window.innerWidth < 768 : false;
 
   if (!user) return null;
 
@@ -101,100 +113,123 @@ export function MessageList({ items, messages, users }: MessageListProps) {
       );
     });
 
+  const handleThreadClick = (itemId: string, userId: string) => {
+    if (isMobile) {
+      router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
+    } else {
+      // For desktop, use callback to update parent state
+      if (onSelectThread) {
+        onSelectThread(itemId, userId);
+      } else {
+        // Fallback to router
+        router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
+      }
+    }
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col">
-        {threads.map((thread) => (
-          <div
-            key={`${thread.item.id}-${thread.interlocutor.id}`}
-            onClick={() =>
-              router.push(
-                `/dashboard/messages/${thread.item.id}?userId=${thread.interlocutor.id}`
-              )
-            }
-            className={cn(
-              "group relative flex items-center gap-4 border-b px-4 py-4 cursor-pointer transition-all duration-200",
-              "hover:bg-accent/50 hover:shadow-sm",
-              thread.hasUnread
-                ? "bg-primary/5 border-l-4 border-l-primary"
-                : "border-l-4 border-l-transparent"
-            )}
-          >
-            {/* Avatar Section */}
-            <div className="relative flex-shrink-0">
-              <Avatar className="h-12 w-12 shadow-sm">
-                <AvatarImage
-                  src={thread.interlocutor.avatar}
-                  alt={thread.interlocutor.name}
-                />
-                {!thread.interlocutor.avatar && (
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-lg">
-                    {thread.interlocutor.name?.charAt(0).toUpperCase() || "?"}
-                  </div>
-                )}
-              </Avatar>
-              {thread.hasUnread && (
-                <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background animate-pulse" />
-              )}
-            </div>
+        {threads.map((thread) => {
+          const isSelected =
+            selectedItemId === thread.item.id &&
+            selectedUserId === thread.interlocutor.id;
 
-            {/* Content Section */}
-            <div className="flex-1 min-w-0 space-y-1">
-              {/* Header Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <h3
+          return (
+            <div
+              key={`${thread.item.id}-${thread.interlocutor.id}`}
+              onClick={() =>
+                handleThreadClick(thread.item.id, thread.interlocutor.id)
+              }
+              className={cn(
+                "group relative flex items-center gap-4 border-b px-4 py-4 cursor-pointer transition-all duration-200",
+                "hover:bg-accent/50 hover:shadow-sm",
+                thread.hasUnread
+                  ? "bg-primary/5 border-l-4 border-l-primary"
+                  : "border-l-4 border-l-transparent",
+                isSelected && "bg-accent/80 shadow-inner"
+              )}
+            >
+              {/* Avatar Section */}
+              <div className="relative flex-shrink-0">
+                <Avatar className="h-12 w-12 shadow-sm">
+                  <AvatarImage
+                    src={thread.interlocutor.avatar}
+                    alt={thread.interlocutor.name}
+                  />
+                  {!thread.interlocutor.avatar && (
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold text-lg">
+                      {thread.interlocutor.name?.charAt(0).toUpperCase() || "?"}
+                    </div>
+                  )}
+                </Avatar>
+                {thread.hasUnread && (
+                  <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-background animate-pulse" />
+                )}
+              </div>
+
+              {/* Content Section */}
+              <div className="flex-1 min-w-0 space-y-1">
+                {/* Header Row */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h3
+                      className={cn(
+                        "font-semibold text-sm truncate",
+                        thread.hasUnread && "text-primary"
+                      )}
+                    >
+                      {thread.interlocutor.name}
+                    </h3>
+                    {thread.hasUnread && (
+                      <Badge
+                        variant="default"
+                        className="h-5 px-1.5 text-xs font-medium"
+                      >
+                        New
+                      </Badge>
+                    )}
+                  </div>
+                  <time className="text-xs text-muted-foreground whitespace-nowrap font-medium">
+                    {formatTimeAgo(new Date(thread.lastMessage.timestamp))}
+                  </time>
+                </div>
+
+                {/* Item Info */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Package className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate font-medium text-xs md:max-w-[10vw] max-w-[20vw]">
+                    {thread.item.name}
+                  </span>
+                  <span className="text-xs opacity-70">#{thread.item.uid}</span>
+                </div>
+
+                {/* Last Message */}
+                <div className="flex items-center justify-between gap-2">
+                  <p
                     className={cn(
-                      "font-semibold text-base truncate",
-                      thread.hasUnread && "text-primary"
+                      "text-xs truncate flex-1 md:max-w-[20vw] max-w-[50vw]",
+                      thread.hasUnread
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground"
                     )}
                   >
-                    {thread.interlocutor.name}
-                  </h3>
-                  {thread.hasUnread && (
-                    <Badge
-                      variant="default"
-                      className="h-5 px-1.5 text-xs font-medium"
-                    >
-                      New
-                    </Badge>
-                  )}
-                </div>
-                <time className="text-xs text-muted-foreground whitespace-nowrap font-medium">
-                  {formatTimeAgo(new Date(thread.lastMessage.timestamp))}
-                </time>
-              </div>
-
-              {/* Item Info */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Package className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="truncate font-medium">{thread.item.name}</span>
-                <span className="text-xs opacity-70">#{thread.item.uid}</span>
-              </div>
-
-              {/* Last Message */}
-              <div className="flex items-center justify-between gap-2">
-                <p
-                  className={cn(
-                    "text-sm truncate flex-1 max-w-[calc(100vw-42rem)]",
-                    thread.hasUnread
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {thread.lastMessage.content}
-                </p>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span className="font-medium">{thread.messages.length}</span>
+                    {thread.lastMessage.content}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span className="font-medium">
+                      {thread.messages.length}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Hover Indicator */}
+              <div className="absolute inset-y-0 right-0 w-1 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-
-            {/* Hover Indicator */}
-            <div className="absolute inset-y-0 right-0 w-1 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        ))}
+          );
+        })}
 
         {threads.length === 0 && (
           <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">

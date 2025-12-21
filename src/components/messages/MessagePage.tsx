@@ -1,89 +1,75 @@
 "use client";
 
-import { ComposeMessageDialog } from "@/components/messages/ComposeMessageDialog";
 import { MessageList } from "@/components/messages/MessageList";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
-import { Item, Message, User } from "@/types";
-import { Loader, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import HeadingText from "../common/HeadingText";
+import { Item } from "@/types";
+import { Loader } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ComposeMessageDialog } from "./ComposeMessageDialog";
+import { MessageDetail } from "./MessageDetail";
 
 export default function MessagesPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { user } = useAppStore();
-  const [search, setSearch] = useState("");
-  const [userFilter, setUserFilter] = useState<string>("ALL");
+  const isMobile = useIsMobile();
 
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
 
+  const [selectedThread, setSelectedThread] = useState<{
+    itemId: string | null;
+    userId: string | null;
+  }>({
+    itemId: null,
+    userId: null,
+  });
+
+  // Sync with URL params on initial load
+  useEffect(() => {
+    const itemId = params.itemId as string;
+    const userId = searchParams.get("userId");
+
+    if (itemId && userId) {
+      setSelectedThread({
+        itemId,
+        userId,
+      });
+    }
+  }, [params.itemId, searchParams.get("userId")]);
+
+  const handleSelectThread = (itemId: string, userId: string) => {
+    setSelectedThread({ itemId, userId });
+
+    if (!isMobile) {
+      // Update URL for desktop without navigation
+      const newUrl = `/dashboard/messages?itemId=${itemId}&userId=${userId}`;
+      window.history.pushState({}, "", newUrl);
+    } else {
+      // For mobile, navigate to detail page
+      router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
+    }
+  };
+
+  const handleCloseThread = () => {
+    setSelectedThread({ itemId: null, userId: null });
+    if (!isMobile) {
+      // Update URL for desktop
+      const newUrl = `/dashboard/messages`;
+      window.history.pushState({}, "", newUrl);
+    }
+  };
+
   const isLoading = isMessagesLoading || isItemsLoading || isUsersLoading;
 
-  if (!user) return null;
-
-  const myMessages = useMemo(
-    () =>
-      messages.filter(
-        (m: Message) => m.senderId === user.id || m.receiverId === user.id
-      ),
-    [messages, user]
-  );
-
-  const myItemIds = useMemo(
-    () =>
-      new Set(
-        myMessages.map((m: Message) => m.itemId).filter(Boolean) as string[]
-      ),
-    [myMessages]
-  );
-
-  let filteredItems = useMemo(
-    () =>
-      items.filter(
-        (item: Item) =>
-          myItemIds.has(item.id) &&
-          (item.name.toLowerCase().includes(search.toLowerCase()) ||
-            item.uid.toLowerCase().includes(search.toLowerCase()))
-      ),
-    [items, myItemIds, search]
-  );
-
-  if (userFilter !== "ALL") {
-    filteredItems = filteredItems.filter((item: Item) => {
-      const itemMsgs = myMessages.filter((m: Message) => m.itemId === item.id);
-      return itemMsgs.some(
-        (m: Message) => m.senderId === userFilter || m.receiverId === userFilter
-      );
-    });
-  }
-
-  const myInterlocutorIds = useMemo(() => {
-    const ids = new Set<string>();
-    myMessages.forEach((m: Message) => {
-      if (m.senderId !== user.id) ids.add(m.senderId);
-      if (m.receiverId !== user.id) ids.add(m.receiverId);
-    });
-    return ids;
-  }, [myMessages, user]);
-
-  const myInterlocutors = useMemo(
-    () => (users || []).filter((u: User) => myInterlocutorIds.has(u.id)),
-    [users, myInterlocutorIds]
-  );
-
-  if (isLoading) {
+  if (!user || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader className="animate-spin h-8 w-8" />
@@ -91,50 +77,104 @@ export default function MessagesPage() {
     );
   }
 
-  return (
-    <div className="space-y-4 md:space-y-6 h-[calc(100dvh-9rem)] md:h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <HeadingText
-          title="Messages"
-          subtitle="Manage and track your conversations with other users."
+  // Find the selected item
+  const selectedItem = selectedThread.itemId
+    ? items.find((item: Item) => item.id === selectedThread.itemId)
+    : null;
+
+  // Mobile view - show list or detail
+  if (isMobile) {
+    return selectedThread.itemId && selectedThread.userId && selectedItem ? (
+      <div className="h-full">
+        <MessageDetail
+          item={selectedItem}
+          targetUserId={selectedThread.userId}
         />
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search threads..."
-              className="pl-8 w-full"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      </div>
+    ) : (
+      <div className="h-full">
+        <div className="p-4 border-b flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Messages</h1>
+            <p className="text-sm text-muted-foreground">Your conversations</p>
           </div>
-          <div className="w-full sm:w-[180px]">
-            <Select value={userFilter} onValueChange={setUserFilter}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filter by Person" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Conversations</SelectItem>
-                {myInterlocutors.map((u: User) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.name} ({u.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <ComposeMessageDialog users={users} items={items} />
+        </div>
+        <div className="h-[calc(100vh-7rem)]">
+          <MessageList
+            items={items}
+            messages={messages}
+            users={users}
+            selectedItemId={selectedThread.itemId}
+            selectedUserId={selectedThread.userId}
+            onSelectThread={handleSelectThread}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop view - show both side by side
+  return (
+    <div className="flex h-full">
+      {/* Left sidebar */}
+      <div className="w-1/3 border-r flex flex-col">
+        <div className="p-4 border-b flex justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">Messages</h1>
+            <p className="text-sm text-muted-foreground">Your conversations</p>
           </div>
+          <ComposeMessageDialog users={users} items={items} />
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <MessageList
+            items={items}
+            messages={messages}
+            users={users}
+            selectedItemId={selectedThread.itemId}
+            selectedUserId={selectedThread.userId}
+            onSelectThread={handleSelectThread}
+          />
         </div>
       </div>
 
-      <Card className="flex-1 p-0 overflow-hidden">
-        <MessageList
-          items={filteredItems}
-          messages={myMessages}
-          users={users}
-        />
-      </Card>
-
-      <ComposeMessageDialog users={users} items={items} />
+      {/* Right side */}
+      <div className="w-2/3 flex flex-col">
+        {selectedThread.itemId && selectedThread.userId && selectedItem ? (
+          <div className="h-full">
+            <MessageDetail
+              item={selectedItem}
+              targetUserId={selectedThread.userId}
+              onClose={handleCloseThread}
+            />
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-6">
+              <svg
+                className="w-12 h-12 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold mb-2">
+              Select a conversation
+            </h2>
+            <p className="text-muted-foreground max-w-md">
+              Choose a conversation from the list to view messages, or start a
+              new conversation about an item.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

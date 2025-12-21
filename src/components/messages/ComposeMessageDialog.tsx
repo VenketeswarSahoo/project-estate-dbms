@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessageMutation } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
@@ -40,6 +41,7 @@ export function ComposeMessageDialog({
   const [open, setOpen] = useState(false);
   const { user } = useAppStore();
   const messageMutation = useMessageMutation();
+  const isMobile = useIsMobile();
 
   const { data: usersData = [] } = useUsers();
   const { data: itemsData = [] } = useItems();
@@ -141,11 +143,12 @@ export function ComposeMessageDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          className="fixed lg:bottom-8 bottom-28 right-8 h-14 w-14 rounded-full shadow-lg p-0"
-          size="icon"
+          className=""
+          size={isMobile ? "icon" : "default"}
           disabled={messageMutation.isPending}
         >
           <Plus className="h-6 w-6" />
+          <span className="md:block hidden">New</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
