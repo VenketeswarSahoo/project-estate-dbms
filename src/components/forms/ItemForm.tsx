@@ -192,8 +192,11 @@ export function ItemForm({
                     <Input
                       placeholder="Item Name"
                       {...field}
+                      type="text"
+                      allowNumbers
                       readOnly={effectiveReadOnly}
                       disabled={loading}
+                      maxLength={120}
                     />
                   </FormControl>
                   <FormMessage />
@@ -242,6 +245,7 @@ export function ItemForm({
                     {...field}
                     readOnly={effectiveReadOnly}
                     disabled={loading}
+                    maxLength={500}
                   />
                 </FormControl>
                 <FormMessage />
@@ -328,6 +332,9 @@ export function ItemForm({
                             {...field}
                             readOnly={effectiveReadOnly}
                             disabled={loading}
+                            type="text"
+                            allowNumbers
+                            maxLength={50}
                           />
                         </div>
                       ) : showDonationSelect ? (
@@ -338,6 +345,9 @@ export function ItemForm({
                             {...field}
                             readOnly={effectiveReadOnly}
                             disabled={loading}
+                            type="text"
+                            allowNumbers
+                            maxLength={50}
                           />
                           <datalist id="saved-donations">
                             {currentClient?.savedDonationRecipients?.map(
@@ -355,6 +365,9 @@ export function ItemForm({
                             {...field}
                             readOnly={effectiveReadOnly}
                             disabled={loading}
+                            type="text"
+                            allowNumbers
+                            maxLength={50}
                           />
                         </div>
                       ) : (
@@ -363,6 +376,9 @@ export function ItemForm({
                           {...field}
                           readOnly={effectiveReadOnly}
                           disabled={loading}
+                          type="text"
+                          allowNumbers
+                          maxLength={50}
                         />
                       )}
                     </FormControl>

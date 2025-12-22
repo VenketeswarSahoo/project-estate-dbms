@@ -43,11 +43,14 @@ export default function LoginPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLocaleLowerCase())}
                 required
                 disabled={isLoggingIn}
+                minLength={5}
+                maxLength={50}
               />
             </div>
             <div className="space-y-2">
@@ -60,6 +63,8 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoggingIn}
+                minLength={8}
+                maxLength={50}
               />
             </div>
             <div className="text-xs text-muted-foreground mt-2">

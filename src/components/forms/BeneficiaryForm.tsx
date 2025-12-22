@@ -107,7 +107,12 @@ export function BeneficiaryForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Beneficiary Name" {...field} />
+                <Input
+                  placeholder="Beneficiary Name"
+                  {...field}
+                  type="text"
+                  maxLength={50}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,7 +126,13 @@ export function BeneficiaryForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="beneficiary@example.com" {...field} />
+                <Input
+                  placeholder="beneficiary@example.com"
+                  {...field}
+                  type="email"
+                  minLength={5}
+                  maxLength={50}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -142,6 +153,8 @@ export function BeneficiaryForm({
                 <Input
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
+                  minLength={8}
+                  maxLength={50}
                   {...field}
                 />
               </FormControl>

@@ -107,7 +107,12 @@ export function ExecutorForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Executor Name" {...field} />
+                <Input
+                  placeholder="Executor Name"
+                  {...field}
+                  type="text"
+                  maxLength={50}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -121,7 +126,13 @@ export function ExecutorForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="executor@example.com" {...field} />
+                <Input
+                  placeholder="executor@example.com"
+                  {...field}
+                  type="email"
+                  maxLength={50}
+                  minLength={5}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -143,6 +154,8 @@ export function ExecutorForm({
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
                   {...field}
+                  maxLength={50}
+                  minLength={8}
                 />
               </FormControl>
               <FormMessage />

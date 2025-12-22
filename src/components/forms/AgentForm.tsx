@@ -103,7 +103,12 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Agent Name" {...field} />
+                <Input
+                  placeholder="Agent Name"
+                  {...field}
+                  type="text"
+                  maxLength={50}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,7 +122,13 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="agent@example.com" {...field} />
+                <Input
+                  placeholder="agent@example.com"
+                  {...field}
+                  type="email"
+                  maxLength={50}
+                  min={5}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -138,6 +149,8 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
                 <Input
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
+                  maxLength={50}
+                  min={8}
                   {...field}
                 />
               </FormControl>

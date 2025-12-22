@@ -106,10 +106,12 @@ export function ClientForm({
                   <FormControl>
                     <Input
                       placeholder="The Smith Estate"
-                      {...field}
+                      type="text"
+                      maxLength={50}
                       readOnly={isReadOnly}
                       disabled={loading}
                       className="text-sm sm:text-base h-10 sm:h-11"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage className="text-xs sm:text-sm" />
@@ -129,12 +131,15 @@ export function ClientForm({
                   <FormControl>
                     <Input
                       placeholder="client@estate.com"
-                      {...field}
                       readOnly={isReadOnly}
                       disabled={loading}
                       className="text-sm sm:text-base h-10 sm:h-11"
                       type="email"
                       inputMode="email"
+                      autoComplete="email"
+                      maxLength={50}
+                      minLength={5}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage className="text-xs sm:text-sm" />
@@ -156,10 +161,13 @@ export function ClientForm({
                   <FormControl>
                     <Input
                       placeholder="123 Maple Ave..."
-                      {...field}
                       readOnly={isReadOnly}
                       disabled={loading}
                       className="text-sm sm:text-base h-10 sm:h-11"
+                      type="text"
+                      allowNumbers
+                      maxLength={250}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage className="text-xs sm:text-sm" />

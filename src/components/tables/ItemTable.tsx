@@ -451,6 +451,8 @@ export function ItemTable({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8"
+              type="text"
+              allowNumbers
             />
           </div>
 

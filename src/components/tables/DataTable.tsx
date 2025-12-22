@@ -126,6 +126,8 @@ export function DataTable<TData>({
             value={globalFilter ?? ""}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8"
+            type="text"
+            allowNumbers
           />
         </div>
       )}
