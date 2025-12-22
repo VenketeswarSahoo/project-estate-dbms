@@ -1,18 +1,20 @@
 "use client";
 
+import { storage } from "@/lib/auth/firebase";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface UseAvatarUploadOptions {
   onUploadSuccess?: (url: string) => void;
   onUploadError?: (error: any) => void;
-  maxSizeKB?: number; // default 500 KB
+  maxSizeKB?: number;
 }
 
 export function useAvatarUpload({
   onUploadSuccess,
   onUploadError,
-  maxSizeKB = 500,
+  maxSizeKB = 2048,
 }: UseAvatarUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -21,56 +23,58 @@ export function useAvatarUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // ✅ Validate file size (in KB)
     const fileSizeKB = file.size / 1024;
     if (fileSizeKB > maxSizeKB) {
       toast.error(`File size exceeds ${maxSizeKB} KB limit`);
-      e.target.value = ""; // reset input
+      e.target.value = "";
       return;
     }
 
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      toast.loading("Uploading avatar...");
 
-      const response = await fetch(
-        "https://staging-maskwa-api.synapsismedical.com/files/upload",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${file.name}`;
+      const filePath = `avatars/${fileName}`;
+      const storageRef = ref(storage, filePath);
 
-      if (response.ok) {
-        const data = await response.json();
-        const imageUrl = data.fileUrl;
+      await new Promise<string>((resolve, reject) => {
+        const uploadTask = uploadBytesResumable(storageRef, file);
 
-        if (imageUrl) {
-          // ✅ Only set preview when upload is successful
-          setAvatarPreview(imageUrl);
-          onUploadSuccess?.(imageUrl);
-          toast.success("Image uploaded successfully");
-        }
-      } else {
-        console.error("Upload failed");
-        toast.error("Failed to upload image");
-        onUploadError?.("Upload failed");
-      }
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Avatar upload: ${progress.toFixed(0)}%`);
+          },
+          (error) => {
+            console.error("Firebase avatar upload error:", error);
+            toast.dismiss();
+            reject(error);
+          },
+          async () => {
+            try {
+              const url = await getDownloadURL(uploadTask.snapshot.ref);
+              toast.dismiss();
+              resolve(url);
+            } catch (error) {
+              toast.dismiss();
+              reject(error);
+            }
+          }
+        );
+      });
+
+      setAvatarPreview(filePath);
+      onUploadSuccess?.(filePath);
+      toast.success("Avatar uploaded successfully");
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Upload error");
+      console.error("Avatar upload error:", error);
+      toast.error("Upload failed");
       onUploadError?.(error);
-
-      // fallback to base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setAvatarPreview(base64);
-        onUploadSuccess?.(base64);
-      };
-      reader.readAsDataURL(file);
     } finally {
       setIsUploading(false);
     }
