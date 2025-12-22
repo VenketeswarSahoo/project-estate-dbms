@@ -27,8 +27,23 @@ export function useUserMutation() {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Operation failed");
-      return res.json();
+      const user = await res.json();
+
+      if (!id && ["AGENT", "EXECUTOR", "BENEFICIARY"].includes(user.role)) {
+        fetch("/api/users/send-credentials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.email,
+            role: user.role,
+            password: data.password,
+          }),
+        }).catch((err) => console.error("Failed to send intro email:", err));
+      }
+
+      return user;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },

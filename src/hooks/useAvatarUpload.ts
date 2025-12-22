@@ -40,7 +40,7 @@ export function useAvatarUpload({
       const filePath = `avatars/${fileName}`;
       const storageRef = ref(storage, filePath);
 
-      await new Promise<string>((resolve, reject) => {
+      const fileUrl = await new Promise<string>((resolve, reject) => {
         const uploadTask = uploadBytesResumable(storageRef, file);
 
         uploadTask.on(
@@ -68,8 +68,8 @@ export function useAvatarUpload({
         );
       });
 
-      setAvatarPreview(filePath);
-      onUploadSuccess?.(filePath);
+      setAvatarPreview(fileUrl); // ✅ use the URL, not the path
+      onUploadSuccess?.(fileUrl); // ✅ return URL to parent
       toast.success("Avatar uploaded successfully");
     } catch (error) {
       console.error("Avatar upload error:", error);
@@ -77,6 +77,7 @@ export function useAvatarUpload({
       onUploadError?.(error);
     } finally {
       setIsUploading(false);
+      e.target.value = ""; // reset input
     }
   };
 

@@ -40,7 +40,29 @@ export function useMessageMutation() {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Operation failed");
-      return res.json();
+      const message = await res.json();
+
+      const user = await fetch(`/api/users/${message.senderId}`).then((res) =>
+        res.json()
+      );
+
+      if (
+        message?.receiverId &&
+        message?.senderId !== message?.receiverId &&
+        user
+      ) {
+        fetch("/api/notifications/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: message.receiverId,
+            title: `${user.name || "Someone"} sent you a message`,
+            message: "Please check your inbox to read it.",
+          }),
+        }).catch((err) => console.error("Failed to create notification:", err));
+      }
+
+      return message;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages"] });
@@ -93,7 +115,6 @@ export function useBatchUpdateMessages() {
   });
 }
 
-// Optional: Hook for message conversations
 export function useMessageConversation(
   senderId?: string,
   recipientId?: string,

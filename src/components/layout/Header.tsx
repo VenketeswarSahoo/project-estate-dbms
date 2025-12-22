@@ -3,8 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { useAppSidebar } from "@/hooks/use-app-sidebar";
 import { useAuthQuery } from "@/lib/hooks/useAuthQuery";
+import { useNotifications } from "@/lib/hooks/useNotifications";
 import { useAppStore } from "@/store/useAppStore";
-import { LogOut, Menu, Moon, Search, Sun, X } from "lucide-react";
+import { formatTimestamp } from "@/utility/formatTimestamp";
+import { Bell, LogOut, Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { ScanDialog } from "../common/ScanDialog";
 import {
@@ -15,11 +17,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Input } from "../ui/input";
 
 const Header = () => {
   const user = useAppStore((state) => state.user);
   const { toggleSidebar, isDesktopCollapsed } = useAppSidebar();
+  const {
+    data: notifications = [],
+    isLoading,
+    refetch,
+  } = useNotifications(user?.id);
 
   const { logout } = useAuthQuery();
 
@@ -45,21 +51,57 @@ const Header = () => {
           )}
         </Button>
         <div className="lg:block hidden">
-          <div className="relative flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search items, users, messages..."
-                className="pl-10 w-64 md:w-80"
-              />
-            </div>
-            <ScanDialog />
-          </div>
+          <ScanDialog />
         </div>
       </div>
 
       <div className="flex items-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative mr-2"
+              title="Notifications"
+              onClick={() => refetch()}
+            >
+              <Bell className="h-5 w-5" />
+              {notifications.filter((n) => !n.isRead).length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 rounded-full">
+                  {notifications.filter((n) => !n.isRead).length}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground p-2">Loading...</p>
+            ) : notifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-2">
+                No new notifications
+              </p>
+            ) : (
+              notifications.slice(0, 10).map((n) => (
+                <DropdownMenuItem
+                  key={n._id}
+                  className={`flex flex-col items-start gap-1 ${
+                    n.isRead ? "opacity-70" : ""
+                  }`}
+                >
+                  <p className="text-sm font-medium">{n.title}</p>
+                  <p className="text-xs text-muted-foreground">{n.message}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {formatTimestamp(n.createdAt)}
+                  </p>
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
