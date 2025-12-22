@@ -33,3 +33,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    await dbConnect();
+    const { ids, update } = await request.json();
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid or empty IDs array" },
+        { status: 400 }
+      );
+    }
+
+    const result = await Message.updateMany(
+      { _id: { $in: ids } },
+      { $set: update }
+    );
+
+    return NextResponse.json({
+      message: "Messages updated successfully",
+      count: result.modifiedCount,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+}

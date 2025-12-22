@@ -8,6 +8,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { formatTimestamp } from "@/utility/formatTimestamp";
 import { Bell, LogOut, Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 import { ScanDialog } from "../common/ScanDialog";
 import {
   DropdownMenu,
@@ -30,6 +31,8 @@ const Header = () => {
   const { logout } = useAuthQuery();
 
   const { setTheme, theme } = useTheme();
+
+  const router = useRouter();
 
   return (
     <header
@@ -88,9 +91,10 @@ const Header = () => {
               notifications.slice(0, 10).map((n) => (
                 <DropdownMenuItem
                   key={n._id}
-                  className={`flex flex-col items-start gap-1 ${
+                  className={`flex flex-col items-start gap-1 cursor-pointer ${
                     n.isRead ? "opacity-70" : ""
                   }`}
+                  onClick={() => router.push("/dashboard/messages")}
                 >
                   <p className="text-sm font-medium">{n.title}</p>
                   <p className="text-xs text-muted-foreground">{n.message}</p>

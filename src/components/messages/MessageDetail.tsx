@@ -38,6 +38,7 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
   const isLoading = isMessagesLoading || isUsersLoading;
 
   const cursorRef = useRef<number>(0);
+  const processedRef = useRef<Set<string>>(new Set());
 
   const insertText = (
     original: string,
@@ -144,9 +145,34 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
     }
   };
 
+  // Reset processed cache when thread changes
+  useEffect(() => {
+    processedRef.current = new Set();
+  }, [targetUserId]);
+
   useEffect(() => {
     scrollToBottom();
-  }, [threadMessages]);
+
+    // Mark messages as read
+    const unreadMessages = threadMessages.filter(
+      (m: Message) =>
+        !m.read &&
+        m.receiverId === user.id &&
+        m.senderId === targetUserId &&
+        !processedRef.current.has(m.id)
+    );
+
+    if (unreadMessages.length > 0) {
+      unreadMessages.forEach((msg: Message) => {
+        processedRef.current.add(msg.id);
+        fetch(`/api/messages/${msg.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ read: true }),
+        }).catch((err) => console.error("Failed to mark read:", err));
+      });
+    }
+  }, [threadMessages, user.id, targetUserId]);
 
   useEffect(() => {
     const timer = setTimeout(() => scrollToBottom(), 100);

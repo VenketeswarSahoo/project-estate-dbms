@@ -19,6 +19,6 @@ export function useNotifications(userId?: string) {
       if (!res.ok) throw new Error("Failed to fetch notifications");
       return res.json() as Promise<Notification[]>;
     },
-    refetchInterval: 10000,
+    refetchInterval: 10 * 1000,
   });
 }

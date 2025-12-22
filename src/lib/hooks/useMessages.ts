@@ -23,6 +23,7 @@ export function useMessages(filters?: {
       if (!res.ok) throw new Error("Failed to fetch messages");
       return res.json();
     },
+    refetchInterval: 10 * 1000,
   });
 }
 
