@@ -163,14 +163,28 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
     );
 
     if (unreadMessages.length > 0) {
+      const idsToUpdate: string[] = [];
+
       unreadMessages.forEach((msg: Message) => {
-        processedRef.current.add(msg.id);
-        fetch(`/api/messages/${msg.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ read: true }),
-        }).catch((err) => console.error("Failed to mark read:", err));
+        // Collect IDs that haven't been processed yet
+        if (!processedRef.current.has(msg.id)) {
+          idsToUpdate.push(msg.id);
+          processedRef.current.add(msg.id);
+        }
       });
+
+      if (idsToUpdate.length > 0) {
+        fetch(`/api/messages`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: idsToUpdate,
+            update: { read: true },
+          }),
+        }).catch((err) => {
+          console.error("Failed to batch mark read:", err);
+        });
+      }
     }
   }, [threadMessages, user.id, targetUserId]);
 

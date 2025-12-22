@@ -31,16 +31,11 @@ export default function MessagesPage() {
     userId: null,
   });
 
-  // Sync with URL params on initial load
+  // Sync with URL params on initial load and changes
   useEffect(() => {
     const userId = searchParams.get("userId");
-
-    if (userId) {
-      setSelectedThread({
-        userId,
-      });
-    }
-  }, [searchParams.get("userId")]);
+    setSelectedThread({ userId: userId || null });
+  }, [searchParams]);
 
   const handleSelectThread = (itemId: string | null, userId: string) => {
     setSelectedThread({ userId });
