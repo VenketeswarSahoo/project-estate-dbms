@@ -153,10 +153,10 @@ export default function MessagesPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-semibold mb-2">
+            <h2 className="text-xl font-semibold mb-2">
               Select a conversation
             </h2>
-            <p className="text-muted-foreground max-w-md">
+            <p className="text-muted-foreground max-w-md text-sm">
               Choose a conversation from the list to view messages, or start a
               new conversation about an item.
             </p>

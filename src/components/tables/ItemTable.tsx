@@ -19,6 +19,7 @@ import {
 import { useAppStore } from "@/store/useAppStore";
 import { Client, Item, User } from "@/types";
 import { type ColumnDef } from "@tanstack/react-table";
+import Fuse from "fuse.js";
 import {
   ArrowUpDown,
   BadgeCheck,
@@ -102,33 +103,31 @@ const getColumns = (
       enableSorting: false,
       enableHiding: false,
     },
-    ...(showPhotos
-      ? [
-          {
-            accessorKey: "photos",
-            header: () => <div className="text-center font-bold">Photo</div>,
-            cell: ({ row }) => (
-              <div className="flex justify-center">
-                {row.original.photos?.[0] ? (
-                  <Image
-                    src={row.original.photos[0]}
-                    alt=""
-                    className="h-10 w-10 object-cover rounded"
-                    width={40}
-                    height={40}
-                  />
-                ) : (
-                  <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground">
-                    No Img
-                  </div>
-                )}
-              </div>
-            ),
-            enableSorting: false,
-          } as ColumnDef<Item>,
-        ]
-      : []),
     {
+      id: "photos",
+      accessorKey: "photos",
+      header: () => <div className="text-center font-bold">Photo</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          {row.original.photos?.[0] ? (
+            <Image
+              src={row.original.photos[0]}
+              alt=""
+              className="h-10 w-10 object-cover rounded"
+              width={40}
+              height={40}
+            />
+          ) : (
+            <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-[10px] text-muted-foreground">
+              No Img
+            </div>
+          )}
+        </div>
+      ),
+      enableSorting: false,
+    },
+    {
+      id: "uid",
       accessorKey: "uid",
       enableSorting: true,
       header: ({ column }) => {
@@ -150,6 +149,7 @@ const getColumns = (
       ),
     },
     {
+      id: "name",
       accessorKey: "name",
       enableSorting: true,
       header: ({ column }) => {
@@ -171,6 +171,7 @@ const getColumns = (
       ),
     },
     {
+      id: "clientId",
       accessorKey: "clientId",
       header: () => (
         <div className="flex items-center font-bold">
@@ -183,6 +184,25 @@ const getColumns = (
       ),
     },
     {
+      id: "description",
+      accessorKey: "description",
+      header: () => <div className="font-bold">Description</div>,
+      cell: ({ row }) => (
+        <div className="text-sm max-w-[200px] truncate">
+          {row.getValue("description")}
+        </div>
+      ),
+    },
+    {
+      id: "barcode",
+      accessorKey: "barcode",
+      header: () => <div className="font-bold">Barcode</div>,
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">{row.getValue("barcode")}</div>
+      ),
+    },
+    {
+      id: "action",
       accessorKey: "action",
       header: () => (
         <div className="flex items-center font-bold">
@@ -292,16 +312,26 @@ export function ItemTable({
   canEdit,
 }: ItemTableProps) {
   const router = useRouter();
-
   const { user } = useAppStore();
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [showPhotos, setShowPhotos] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [clientFilter, setClientFilter] = useState("ALL");
   const [bulkAction, setBulkAction] = useState("");
+
+  // Column visibility state
+  const [columnVisibility, setColumnVisibility] = useState({
+    photos: false,
+    uid: true,
+    name: true,
+    clientId: true,
+    description: false,
+    barcode: false,
+    action: true,
+    actions: true,
+  });
 
   const handleSelectItem = (id: string, checked: boolean) => {
     if (checked) {
@@ -326,23 +356,62 @@ export function ItemTable({
   };
 
   const filteredItems = React.useMemo(() => {
+    const normalize = (str: string) =>
+      str
+        ?.toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w\s]|_/g, "")
+        .replace(/\s+/g, " ")
+        .trim() ?? "";
+
+    const terms = normalize(searchQuery).split(" ").filter(Boolean);
+
     return items.filter((item) => {
-      const term = searchQuery.toLowerCase();
-      const matchesSearch =
-        item.name.toLowerCase().includes(term) ||
-        item.uid.toLowerCase().includes(term) ||
-        item.barcode.includes(term) ||
-        item.description.toLowerCase().includes(term);
+      const client = clients.find((c) => c.id === item.clientId);
+
+      const searchableString = normalize(
+        [
+          item.name,
+          item.uid,
+          item.barcode,
+          item.description,
+          item.action,
+          item.actionNote,
+          client?.name,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      );
+
+      const exactMatch =
+        terms.length === 0 ||
+        terms.every((term) => searchableString.includes(term));
+
+      if (exactMatch) {
+        const matchesStatus =
+          statusFilter === "ALL" || item.action === statusFilter;
+        const matchesClient =
+          clientFilter === "ALL" || item.clientId === clientFilter;
+        return matchesStatus && matchesClient;
+      }
+
+      const fuse = new Fuse([searchableString], {
+        includeScore: true,
+        threshold: 0.4, // 0.2 = strict, 0.6 = loose
+      });
+
+      const fuzzyMatch = fuse.search(searchQuery).length > 0;
 
       const matchesStatus =
         statusFilter === "ALL" || item.action === statusFilter;
-
       const matchesClient =
         clientFilter === "ALL" || item.clientId === clientFilter;
 
-      return matchesSearch && matchesStatus && matchesClient;
+      return fuzzyMatch && matchesStatus && matchesClient;
     });
-  }, [items, searchQuery, statusFilter, clientFilter]);
+  }, [items, clients, searchQuery, statusFilter, clientFilter]);
 
   const columns = React.useMemo(
     () =>
@@ -350,14 +419,26 @@ export function ItemTable({
         router,
         clients,
         canEdit,
-        showPhotos,
+        columnVisibility.photos,
         selectedItems,
         handleSelectItem,
         onAction,
         user as User
       ),
-    [router, clients, canEdit, showPhotos, selectedItems, onAction]
+    [router, clients, canEdit, columnVisibility.photos, selectedItems, onAction]
   );
+
+  const visibleColumns = React.useMemo(() => {
+    return columns.filter((column) => {
+      if (column.id === "select") return true;
+
+      if (column.id && column.id in columnVisibility) {
+        return columnVisibility[column.id as keyof typeof columnVisibility];
+      }
+
+      return true;
+    });
+  }, [columns, columnVisibility]);
 
   return (
     <div className="space-y-4">
@@ -444,7 +525,6 @@ export function ItemTable({
                   className="rounded-r-none"
                   onClick={() => {
                     setViewMode("list");
-                    setShowPhotos(false);
                   }}
                 >
                   <List className="h-4 w-4" />
@@ -462,7 +542,6 @@ export function ItemTable({
                   className="rounded-l-none"
                   onClick={() => {
                     setViewMode("grid");
-                    setShowPhotos(true);
                   }}
                 >
                   <Grid3x3 className="h-4 w-4" />
@@ -482,15 +561,36 @@ export function ItemTable({
                   View
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>View Options</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>Column Visibility</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                  checked={showPhotos}
-                  onCheckedChange={setShowPhotos}
-                >
-                  Show Photos
-                </DropdownMenuCheckboxItem>
+                {[
+                  { id: "photos", label: "Photo" },
+                  { id: "uid", label: "UID" },
+                  { id: "name", label: "Name" },
+                  { id: "clientId", label: "Client" },
+                  { id: "description", label: "Description" },
+                  { id: "barcode", label: "Barcode" },
+                  { id: "action", label: "Status" },
+                  { id: "actions", label: "Actions" },
+                ].map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={
+                      columnVisibility[
+                        column.id as keyof typeof columnVisibility
+                      ]
+                    }
+                    onCheckedChange={(checked) =>
+                      setColumnVisibility((prev) => ({
+                        ...prev,
+                        [column.id]: checked,
+                      }))
+                    }
+                  >
+                    {column.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
             {canEdit && (
@@ -548,7 +648,7 @@ export function ItemTable({
       {viewMode === "list" ? (
         <DataTable
           data={filteredItems}
-          columns={columns}
+          columns={visibleColumns}
           onAction={onAction}
           entityName="Item"
           searchField={false}
@@ -561,7 +661,8 @@ export function ItemTable({
             selectedItems={selectedItems}
             onSelectItem={handleSelectItem}
             canEdit={canEdit}
-            showPhotos={showPhotos}
+            showPhotos={columnVisibility.photos}
+            columnVisibility={columnVisibility}
           />
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div>Showing {filteredItems.length} items</div>

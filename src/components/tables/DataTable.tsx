@@ -28,6 +28,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
+import Fuse from "fuse.js";
 import {
   ChevronLeft,
   ChevronRight,
@@ -76,15 +77,37 @@ export function DataTable<TData>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchValue = filterValue.toLowerCase();
 
-      return Object.keys(row.original as object).some((key) => {
-        const value = (row.original as any)[key];
-        return (
-          typeof value === "string" && value.toLowerCase().includes(searchValue)
-        );
+    globalFilterFn: (row, columnId, filterValue) => {
+      const normalize = (str: string) =>
+        str
+          ?.toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^\w\s]|_/g, "")
+          .replace(/\s+/g, " ")
+          .trim() ?? "";
+
+      const terms = normalize(filterValue).split(" ").filter(Boolean);
+
+      const searchableString = normalize(
+        Object.values(row.original as Record<string, any>)
+          .filter((v) => v != null)
+          .join(" ")
+      );
+
+      const exactMatch =
+        terms.length === 0 || terms.every((t) => searchableString.includes(t));
+
+      if (exactMatch) return true;
+
+      const fuse = new Fuse([searchableString], {
+        includeScore: true,
+        threshold: 0.4,
       });
+
+      return fuse.search(filterValue).length > 0;
     },
   });
 
