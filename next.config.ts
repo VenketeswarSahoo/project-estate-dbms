@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: "development-files-store.s3.ca-central-1.amazonaws.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**",
+      },
     ],
   },
 };

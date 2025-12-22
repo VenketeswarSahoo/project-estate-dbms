@@ -1,30 +1,27 @@
 "use client";
 
 import { MessageThread } from "@/components/messages/MessageThread";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/useIs-tablet";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useMessageMutation, useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
-import { Item, Message } from "@/types";
+import { Message, User } from "@/types";
 import { Loader, Mic, MicOff, Send, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface MessageDetailProps {
-  item: Item;
   targetUserId: string;
   onClose?: () => void;
 }
 
-export function MessageDetail({
-  item,
-  targetUserId,
-  onClose,
-}: MessageDetailProps) {
+export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
   const router = useRouter();
   const { user } = useAppStore();
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
@@ -36,6 +33,7 @@ export function MessageDetail({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isMobile = useIsMobile();
+  const isTab = useIsTablet();
 
   const isLoading = isMessagesLoading || isUsersLoading;
 
@@ -114,10 +112,12 @@ export function MessageDetail({
     );
   }
 
-  if (!item) {
+  const targetUser = users.find((u: User) => u.id === targetUserId);
+
+  if (!targetUser) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-lg font-semibold mb-4">Item not found</div>
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="text-lg font-semibold mb-4">User not found</div>
       </div>
     );
   }
@@ -126,39 +126,11 @@ export function MessageDetail({
     () =>
       messages.filter(
         (m: Message) =>
-          (m.senderId === user.id || m.receiverId === user.id) &&
-          m.itemId === item.id &&
-          (targetUserId
-            ? m.senderId === targetUserId || m.receiverId === targetUserId
-            : true)
+          (m.senderId === user.id && m.receiverId === targetUserId) ||
+          (m.senderId === targetUserId && m.receiverId === user.id)
       ),
-    [messages, user, item.id, targetUserId]
+    [messages, user, targetUserId]
   );
-
-  const lastIncomingMsg = useMemo(
-    () =>
-      [...threadMessages]
-        .sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        )
-        .find((m) => m.senderId !== user.id),
-    [threadMessages, user]
-  );
-
-  const lastOutgoingMsg = useMemo(
-    () =>
-      [...threadMessages]
-        .sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        )
-        .find((m) => m.senderId === user.id),
-    [threadMessages, user]
-  );
-
-  const replyReceiverId =
-    lastIncomingMsg?.senderId || lastOutgoingMsg?.receiverId || targetUserId;
 
   const scrollToBottom = () => {
     if (scrollContainerRef.current) {
@@ -187,16 +159,11 @@ export function MessageDetail({
 
   const handleReply = async () => {
     if (!replyContent.trim()) return;
-    if (!replyReceiverId) {
-      toast.error("Cannot determine recipient for reply.");
-      return;
-    }
 
     await messageMutation.mutateAsync(
       {
         senderId: user.id,
-        receiverId: replyReceiverId,
-        itemId: item.id,
+        receiverId: targetUserId,
         content: replyContent,
         read: false,
       },
@@ -222,7 +189,7 @@ export function MessageDetail({
   }, [replyContent, isListening, interimResult]);
 
   const handleBackOrClose = () => {
-    if (isMobile) {
+    if (isMobile || isTab) {
       router.back();
     } else if (onClose) {
       onClose();
@@ -234,14 +201,17 @@ export function MessageDetail({
       {/* Header - shown on all screens */}
       <div className="flex justify-between items-center p-4 border-b">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-            <span className="font-semibold text-primary">
-              {item.name?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={targetUser.avatar} alt={targetUser.name} />
+            <AvatarFallback>
+              {targetUser.name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <div>
-            <h2 className="font-semibold lg:text-lg text-sm">{item.name}</h2>
-            <p className="text-sm text-muted-foreground">Item #{item.uid}</p>
+            <h2 className="font-semibold lg:text-base text-sm">
+              {targetUser.name}
+            </h2>
+            <p className="text-xs text-muted-foreground">{targetUser.role}</p>
           </div>
         </div>
 
@@ -260,7 +230,6 @@ export function MessageDetail({
       <div className="flex-1 overflow-hidden">
         <MessageThread
           ref={scrollContainerRef}
-          item={item}
           messages={threadMessages}
           currentUser={user}
           users={users}
@@ -278,7 +247,7 @@ export function MessageDetail({
                 updateCursorPosition(e);
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (replyContent.trim() && replyReceiverId) {
+                  if (replyContent.trim()) {
                     handleReply();
                   }
                 }
@@ -345,7 +314,7 @@ export function MessageDetail({
           </Button>
         </div>
 
-        {!replyReceiverId && threadMessages.length === 0 && (
+        {threadMessages.length === 0 && (
           <p className="text-xs text-muted-foreground mt-2 text-center">
             No conversation history. Start by sending a message.
           </p>

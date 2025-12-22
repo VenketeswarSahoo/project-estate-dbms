@@ -2,12 +2,11 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Item, Message, User } from "@/types";
+import { Message, User } from "@/types";
 import { format } from "date-fns";
 import { forwardRef } from "react";
 
 interface MessageThreadProps {
-  item: Item;
   messages: Message[];
   currentUser: User;
   users: User[];
@@ -19,6 +18,8 @@ export const MessageThread = forwardRef<HTMLDivElement, MessageThreadProps>(
       (a, b) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
+
+    console.log(messages);
 
     const getUserName = (id: string) =>
       users.find((u) => u.id === id)?.name || "Unknown";

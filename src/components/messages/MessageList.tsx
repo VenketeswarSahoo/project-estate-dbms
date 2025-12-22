@@ -2,20 +2,20 @@
 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/useIs-tablet";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
-import { Item, Message, User } from "@/types";
-import { MessageCircle, Package } from "lucide-react";
+import { Message, User } from "@/types";
+import { MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage } from "../ui/avatar";
 
 interface MessageListProps {
-  items: Item[];
   messages: Message[];
   users: User[];
-  selectedItemId?: string | null;
   selectedUserId?: string | null;
-  onSelectThread?: (itemId: string, userId: string) => void;
+  onSelectThread?: (itemId: string | null, userId: string) => void;
 }
 
 function formatTimeAgo(date: Date): string {
@@ -36,17 +36,15 @@ function formatTimeAgo(date: Date): string {
 }
 
 export function MessageList({
-  items,
   messages,
   users,
-  selectedItemId,
   selectedUserId,
   onSelectThread,
 }: MessageListProps) {
   const router = useRouter();
   const { user } = useAppStore();
-  const isMobile =
-    typeof window !== "undefined" ? window.innerWidth < 768 : false;
+  const isMobile = useIsMobile();
+  const isTab = useIsTablet();
 
   if (!user) return null;
 
@@ -57,7 +55,6 @@ export function MessageList({
   const threadMap = new Map<
     string,
     {
-      item: Item;
       interlocutor: User;
       messages: Message[];
       hasUnread: boolean;
@@ -65,21 +62,16 @@ export function MessageList({
     }
   >();
 
-  const itemIds = new Set(items.map((i) => i.id));
-
   messages.forEach((msg) => {
-    if (!msg.itemId || !itemIds.has(msg.itemId)) return;
-
     const interlocutorId = getInterlocutorId(msg);
-    const key = `${msg.itemId}-${interlocutorId}`;
+    // Group by interlocutorId only
+    const key = interlocutorId;
 
     if (!threadMap.has(key)) {
-      const item = items.find((i) => i.id === msg.itemId);
       const interlocutor = users.find((u) => u.id === interlocutorId);
 
-      if (item && interlocutor) {
+      if (interlocutor) {
         threadMap.set(key, {
-          item,
           interlocutor,
           messages: [],
           hasUnread: false,
@@ -113,34 +105,20 @@ export function MessageList({
       );
     });
 
-  const handleThreadClick = (itemId: string, userId: string) => {
-    if (isMobile) {
-      router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
-    } else {
-      // For desktop, use callback to update parent state
-      if (onSelectThread) {
-        onSelectThread(itemId, userId);
-      } else {
-        // Fallback to router
-        router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
-      }
-    }
+  const handleThreadClick = (userId: string) => {
+    router.push(`/dashboard/messages?userId=${userId}`);
   };
 
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col">
         {threads.map((thread) => {
-          const isSelected =
-            selectedItemId === thread.item.id &&
-            selectedUserId === thread.interlocutor.id;
+          const isSelected = selectedUserId === thread.interlocutor.id;
 
           return (
             <div
-              key={`${thread.item.id}-${thread.interlocutor.id}`}
-              onClick={() =>
-                handleThreadClick(thread.item.id, thread.interlocutor.id)
-              }
+              key={thread.interlocutor.id}
+              onClick={() => handleThreadClick(thread.interlocutor.id)}
               className={cn(
                 "group relative flex items-center gap-4 border-b px-4 py-4 cursor-pointer transition-all duration-200",
                 "hover:bg-accent/50 hover:shadow-sm",
@@ -195,13 +173,11 @@ export function MessageList({
                   </time>
                 </div>
 
-                {/* Item Info */}
+                {/* Role Info */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Package className="h-3.5 w-3.5 flex-shrink-0" />
-                  <span className="truncate font-medium text-xs md:max-w-[10vw] max-w-[20vw]">
-                    {thread.item.name}
+                  <span className="truncate font-medium text-xs">
+                    {thread.interlocutor.role}
                   </span>
-                  <span className="text-xs opacity-70">#{thread.item.uid}</span>
                 </div>
 
                 {/* Last Message */}
@@ -239,8 +215,7 @@ export function MessageList({
             <div className="space-y-1">
               <h3 className="font-semibold text-lg">No conversations yet</h3>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Start a conversation by messaging someone about an item you're
-                interested in.
+                Start a conversation by messaging someone.
               </p>
             </div>
           </div>

@@ -2,16 +2,16 @@
 
 import { MessageList } from "@/components/messages/MessageList";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/useIs-tablet";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
-import { Item } from "@/types";
 import { Loader } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ComposeMessageDialog } from "./ComposeMessageDialog";
 import { MessageDetail } from "./MessageDetail";
+import { ComposeMessageDialog } from "./NewMessage/ComposeMessageDialog";
 
 export default function MessagesPage() {
   const params = useParams();
@@ -19,47 +19,44 @@ export default function MessagesPage() {
   const router = useRouter();
   const { user } = useAppStore();
   const isMobile = useIsMobile();
+  const isTab = useIsTablet();
 
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
 
   const [selectedThread, setSelectedThread] = useState<{
-    itemId: string | null;
     userId: string | null;
   }>({
-    itemId: null,
     userId: null,
   });
 
   // Sync with URL params on initial load
   useEffect(() => {
-    const itemId = params.itemId as string;
     const userId = searchParams.get("userId");
 
-    if (itemId && userId) {
+    if (userId) {
       setSelectedThread({
-        itemId,
         userId,
       });
     }
-  }, [params.itemId, searchParams.get("userId")]);
+  }, [searchParams.get("userId")]);
 
-  const handleSelectThread = (itemId: string, userId: string) => {
-    setSelectedThread({ itemId, userId });
+  const handleSelectThread = (itemId: string | null, userId: string) => {
+    setSelectedThread({ userId });
 
     if (!isMobile) {
       // Update URL for desktop without navigation
-      const newUrl = `/dashboard/messages?itemId=${itemId}&userId=${userId}`;
+      const newUrl = `/dashboard/messages?userId=${userId}`;
       window.history.pushState({}, "", newUrl);
     } else {
       // For mobile, navigate to detail page
-      router.push(`/dashboard/messages/${itemId}?userId=${userId}`);
+      router.push(`/dashboard/messages/user/${userId}`);
     }
   };
 
   const handleCloseThread = () => {
-    setSelectedThread({ itemId: null, userId: null });
+    setSelectedThread({ userId: null });
     if (!isMobile) {
       // Update URL for desktop
       const newUrl = `/dashboard/messages`;
@@ -77,19 +74,11 @@ export default function MessagesPage() {
     );
   }
 
-  // Find the selected item
-  const selectedItem = selectedThread.itemId
-    ? items.find((item: Item) => item.id === selectedThread.itemId)
-    : null;
-
   // Mobile view - show list or detail
-  if (isMobile) {
-    return selectedThread.itemId && selectedThread.userId && selectedItem ? (
+  if (isMobile || isTab) {
+    return selectedThread.userId ? (
       <div className="h-full">
-        <MessageDetail
-          item={selectedItem}
-          targetUserId={selectedThread.userId}
-        />
+        <MessageDetail targetUserId={selectedThread.userId} />
       </div>
     ) : (
       <div className="h-full">
@@ -98,14 +87,15 @@ export default function MessagesPage() {
             <h1 className="text-2xl font-bold">Messages</h1>
             <p className="text-sm text-muted-foreground">Your conversations</p>
           </div>
-          <ComposeMessageDialog users={users} items={items} />
+          <ComposeMessageDialog
+            users={users}
+            onUserSelect={(userId) => handleSelectThread(null, userId)}
+          />
         </div>
         <div className="h-[calc(100vh-7rem)]">
           <MessageList
-            items={items}
             messages={messages}
             users={users}
-            selectedItemId={selectedThread.itemId}
             selectedUserId={selectedThread.userId}
             onSelectThread={handleSelectThread}
           />
@@ -124,14 +114,15 @@ export default function MessagesPage() {
             <h1 className="text-xl font-semibold">Messages</h1>
             <p className="text-sm text-muted-foreground">Your conversations</p>
           </div>
-          <ComposeMessageDialog users={users} items={items} />
+          <ComposeMessageDialog
+            users={users}
+            onUserSelect={(userId) => handleSelectThread(null, userId)}
+          />
         </div>
         <div className="flex-1 overflow-hidden">
           <MessageList
-            items={items}
             messages={messages}
             users={users}
-            selectedItemId={selectedThread.itemId}
             selectedUserId={selectedThread.userId}
             onSelectThread={handleSelectThread}
           />
@@ -140,10 +131,9 @@ export default function MessagesPage() {
 
       {/* Right side */}
       <div className="w-2/3 flex flex-col">
-        {selectedThread.itemId && selectedThread.userId && selectedItem ? (
+        {selectedThread.userId ? (
           <div className="h-full">
             <MessageDetail
-              item={selectedItem}
               targetUserId={selectedThread.userId}
               onClose={handleCloseThread}
             />
@@ -170,7 +160,7 @@ export default function MessagesPage() {
             </h2>
             <p className="text-muted-foreground max-w-md">
               Choose a conversation from the list to view messages, or start a
-              new conversation about an item.
+              new conversation.
             </p>
           </div>
         )}

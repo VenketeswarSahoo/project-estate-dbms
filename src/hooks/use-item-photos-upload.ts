@@ -1,58 +1,61 @@
 "use client";
 
+import { storage } from "@/lib/auth/firebase";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useState } from "react";
-import { toast } from "sonner";
 import { FieldPath, UseFormSetValue } from "react-hook-form";
+import { toast } from "sonner";
 
 interface UseItemPhotosUploadOptions {
   onUploadSuccess?: (urls: string[]) => void;
   onUploadError?: (error: any) => void;
-  maxSizeKB?: number; // default 500 KB per file
-  maxFiles?: number; // maximum number of files to upload
+  maxSizeKB?: number;
+  maxFiles?: number;
 }
 
 export function useItemPhotosUpload<T extends Record<string, any>>({
   onUploadSuccess,
   onUploadError,
-  maxSizeKB = 500,
-  maxFiles = 10, // default max 10 files
+  maxSizeKB = 2048,
+  maxFiles = 10,
 }: UseItemPhotosUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
-  /**
-   * Upload a single file to the API
-   */
   const uploadSingleFile = async (file: File): Promise<string | null> => {
-    const formData = new FormData();
-    formData.append("file", file); // Note: singular "file" as per API
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name}`;
+    const filePath = `items/${fileName}`;
+    const storageRef = ref(storage, filePath);
 
-    try {
-      const response = await fetch(
-        "https://staging-maskwa-api.synapsismedical.com/files/upload",
-        {
-          method: "POST",
-          body: formData,
+    return new Promise<string | null>((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload progress for ${file.name}: ${progress}%`);
+        },
+        (error) => {
+          console.error("Firebase upload error for file:", file.name, error);
+          reject(error);
+        },
+        async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(url);
+          } catch (error) {
+            console.error("Error getting download URL:", error);
+            reject(error);
+          }
         }
       );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      return data.fileUrl || data.url || null;
-    } catch (error) {
-      console.error("Upload error for file:", file.name, error);
-      throw error;
-    }
+    });
   };
 
-  /**
-   * Validate files before uploading
-   */
   const validateFiles = (
     files: File[]
   ): { valid: boolean; errors: string[] } => {
@@ -81,15 +84,9 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
       }
     }
 
-    return {
-      valid: errors.length === 0,
-      errors,
-    };
+    return { valid: errors.length === 0, errors };
   };
 
-  /**
-   * Handle multiple photo uploads by uploading each file individually
-   */
   const handleMultiPhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setValue?: UseFormSetValue<T>,
@@ -98,14 +95,12 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Convert FileList to array
     const fileArray = Array.from(files);
 
-    // Validate files
     const validation = validateFiles(fileArray);
     if (!validation.valid) {
       validation.errors.forEach((error) => toast.error(error));
-      e.target.value = ""; // reset input
+      e.target.value = "";
       return;
     }
 
@@ -116,38 +111,31 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     const failedFiles: string[] = [];
 
     try {
-      // Upload files sequentially to maintain order
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
+      const uploadPromises = fileArray.map((file, index) =>
+        uploadSingleFileWithToast(file, index + 1, fileArray.length)
+      );
 
-        try {
-          toast.loading(`Uploading ${i + 1}/${fileArray.length}: ${file.name}`);
+      const results = await Promise.allSettled(uploadPromises);
 
-          const fileUrl = await uploadSingleFile(file);
+      results.forEach((result, index) => {
+        const file = fileArray[index];
 
-          if (fileUrl) {
-            uploadedUrls.push(fileUrl);
-            toast.dismiss();
-            toast.success(`Uploaded: ${file.name}`);
-          } else {
-            failedFiles.push(file.name);
-            toast.dismiss();
-            toast.error(`Failed to upload: ${file.name}`);
-          }
-        } catch (error) {
+        if (result.status === "fulfilled" && result.value) {
+          uploadedUrls.push(result.value);
+          toast.success(`Uploaded: ${file.name}`);
+        } else {
           failedFiles.push(file.name);
-          toast.dismiss();
           toast.error(`Failed to upload: ${file.name}`);
-          console.error(`Error uploading ${file.name}:`, error);
+          console.error(
+            `Error uploading ${file.name}:`,
+            result.status === "rejected" ? result.reason : "Unknown error"
+          );
         }
+      });
 
-        // Update progress
-        setUploadProgress(((i + 1) / fileArray.length) * 100);
-      }
+      setUploadProgress(100);
 
-      // Update state with all successfully uploaded URLs
       if (uploadedUrls.length > 0) {
-        // Combine existing photos with new ones
         const allPhotos = [...photoPreviews, ...uploadedUrls];
         setPhotoPreviews(allPhotos);
 
@@ -159,10 +147,12 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
 
         if (failedFiles.length > 0) {
           toast.warning(
-            `Uploaded ${uploadedUrls.length} files. Failed: ${failedFiles.length} file(s)`
+            `Uploaded ${uploadedUrls.length}/${fileArray.length} files`
           );
         } else {
-          toast.success(`Successfully uploaded ${uploadedUrls.length} file(s)`);
+          toast.success(
+            `Successfully uploaded all ${uploadedUrls.length} files`
+          );
         }
       } else {
         toast.error("No files were uploaded successfully");
@@ -175,13 +165,53 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
-      e.target.value = ""; // Clear input
+      e.target.value = "";
     }
   };
 
-  /**
-   * Handle camera capture (base64) by converting to File and uploading
-   */
+  const uploadSingleFileWithToast = async (
+    file: File,
+    current: number,
+    total: number
+  ): Promise<string | null> => {
+    toast.loading(`Uploading ${current}/${total}: ${file.name}`);
+
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name}`;
+    const filePath = `items/${fileName}`;
+    const storageRef = ref(storage, filePath);
+
+    return new Promise<string | null>((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(
+            `[${current}/${total}] ${file.name}: ${progress.toFixed(0)}%`
+          );
+        },
+        (error) => {
+          console.error("Firebase upload error:", error);
+          toast.dismiss();
+          reject(error);
+        },
+        async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            toast.dismiss();
+            resolve(url);
+          } catch (error) {
+            toast.dismiss();
+            reject(error);
+          }
+        }
+      );
+    });
+  };
+
   const handleCameraCaptureUpload = async (
     base64Image: string,
     setValue?: UseFormSetValue<T>,
@@ -190,11 +220,9 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     setIsUploading(true);
 
     try {
-      // Convert base64 to blob
       const response = await fetch(base64Image);
       const blob = await response.blob();
 
-      // Create a File object from the blob
       const file = new File([blob], `camera-${Date.now()}.jpg`, {
         type: "image/jpeg",
       });
@@ -204,7 +232,6 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
       const fileUrl = await uploadSingleFile(file);
 
       if (fileUrl) {
-        // Add to existing photos
         const allPhotos = [...photoPreviews, fileUrl];
         setPhotoPreviews(allPhotos);
 
@@ -228,9 +255,6 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     }
   };
 
-  /**
-   * Handle removal of a photo by index
-   */
   const removePhoto = (index: number) => {
     const newPhotos = [...photoPreviews];
     newPhotos.splice(index, 1);

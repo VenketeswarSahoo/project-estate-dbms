@@ -2,6 +2,7 @@
 
 import { MessageList } from "@/components/messages/MessageList";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/useIs-tablet";
 import { useItems } from "@/lib/hooks/useItems";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useUsers } from "@/lib/hooks/useUsers";
@@ -18,6 +19,7 @@ export default function MessagesPage() {
   const router = useRouter();
   const { user } = useAppStore();
   const isMobile = useIsMobile();
+  const isTab = useIsTablet();
 
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: items = [], isLoading: isItemsLoading } = useItems();
@@ -82,12 +84,12 @@ export default function MessagesPage() {
     : null;
 
   // Mobile view - show list or detail
-  if (isMobile) {
+  if (isMobile || isTab) {
     return selectedThread.itemId && selectedThread.userId && selectedItem ? (
       <div className="h-full">
         {/* No back button here - it's now in the MessageDetail header */}
         <MessageDetail
-          item={selectedItem}
+          onClose={handleCloseThread}
           targetUserId={selectedThread.userId}
         />
       </div>
@@ -98,12 +100,9 @@ export default function MessagesPage() {
         </div>
         <div className="h-[calc(100vh-7rem)]">
           <MessageList
-            items={items}
             messages={messages}
             users={users}
-            selectedItemId={selectedThread.itemId}
             selectedUserId={selectedThread.userId}
-            onSelectThread={handleSelectThread}
           />
         </div>
       </div>
@@ -121,12 +120,9 @@ export default function MessagesPage() {
         </div>
         <div className="flex-1 overflow-hidden">
           <MessageList
-            items={items}
             messages={messages}
             users={users}
-            selectedItemId={selectedThread.itemId}
             selectedUserId={selectedThread.userId}
-            onSelectThread={handleSelectThread}
           />
         </div>
       </div>
@@ -136,7 +132,6 @@ export default function MessagesPage() {
         {selectedThread.itemId && selectedThread.userId && selectedItem ? (
           <div className="h-full">
             <MessageDetail
-              item={selectedItem}
               targetUserId={selectedThread.userId}
               onClose={handleCloseThread}
             />
