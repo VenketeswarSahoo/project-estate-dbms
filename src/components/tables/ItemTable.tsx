@@ -527,6 +527,10 @@ export function ItemTable({
                   className="rounded-r-none"
                   onClick={() => {
                     setViewMode("list");
+                    setColumnVisibility((prev) => ({
+                      ...prev,
+                      ["photos"]: false,
+                    }));
                   }}
                 >
                   <List className="h-4 w-4" />
@@ -544,6 +548,10 @@ export function ItemTable({
                   className="rounded-l-none"
                   onClick={() => {
                     setViewMode("grid");
+                    setColumnVisibility((prev) => ({
+                      ...prev,
+                      ["photos"]: true,
+                    }));
                   }}
                 >
                   <Grid3x3 className="h-4 w-4" />

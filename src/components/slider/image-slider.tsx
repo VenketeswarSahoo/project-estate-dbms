@@ -118,9 +118,9 @@ export function ImageSlider({ images, itemName }: ImageSliderProps) {
           </>
         )}
 
-        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+        {/* <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
           {currentIndex + 1} / {images.length}
-        </div>
+        </div> */}
 
         {images.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1">
