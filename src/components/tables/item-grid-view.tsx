@@ -153,7 +153,7 @@ export function ItemGridView({
                 <div className="space-y-2">
                   {columnVisibility.name && (
                     <div>
-                      <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+                      <h3 className="font-semibold group-hover:text-primary transition-colors">
                         {item.name}
                       </h3>
                       {item.uid && columnVisibility.uid && (
@@ -197,7 +197,7 @@ export function ItemGridView({
                   <div className="pt-2 border-t">
                     <div className="flex items-start gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {item.description}
                       </p>
                     </div>
