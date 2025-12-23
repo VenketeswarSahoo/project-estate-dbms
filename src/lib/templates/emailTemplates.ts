@@ -178,9 +178,7 @@ export function messageNotificationTemplate({
       </div>
       <div style="${styles.footer}">
         <p style="margin: 0 0 8px 0;">&copy; ${new Date().getFullYear()} Onarach Estate App. All rights reserved.</p>
-        <p style="margin: 0;">Need help? Contact our <a href="#" style="${
-          styles.footerLink
-        }">support team</a>.</p>
+        <p style="margin: 0;">This is an automated message. Please do not reply directly to this email.</p>
       </div>
     </div>
   `;
