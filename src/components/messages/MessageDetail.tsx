@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsTablet } from "@/hooks/useIs-tablet";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useMessageMutation, useMessages } from "@/lib/hooks/useMessages";
+import { useMarkMessagesRead } from "@/lib/hooks/useNotifications";
 import { useUsers } from "@/lib/hooks/useUsers";
 import { useAppStore } from "@/store/useAppStore";
 import { Message, User } from "@/types";
@@ -27,6 +28,7 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages();
   const { data: users = [], isLoading: isUsersLoading } = useUsers();
   const messageMutation = useMessageMutation();
+  const markMessagesReadMutation = useMarkMessagesRead();
 
   const [replyContent, setReplyContent] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -100,7 +102,7 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -108,7 +110,7 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -174,15 +176,9 @@ export function MessageDetail({ targetUserId, onClose }: MessageDetailProps) {
       });
 
       if (idsToUpdate.length > 0) {
-        fetch(`/api/messages`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ids: idsToUpdate,
-            update: { read: true },
-          }),
-        }).catch((err) => {
-          console.error("Failed to batch mark read:", err);
+        markMessagesReadMutation.mutate({
+          ids: idsToUpdate,
+          update: { read: true },
         });
       }
     }

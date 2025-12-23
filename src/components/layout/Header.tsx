@@ -6,7 +6,16 @@ import { useAuthQuery } from "@/lib/hooks/useAuthQuery";
 import { useNotifications } from "@/lib/hooks/useNotifications";
 import { useAppStore } from "@/store/useAppStore";
 import { formatTimestamp } from "@/utility/formatTimestamp";
-import { Bell, LogOut, Menu, Moon, Sun, X } from "lucide-react";
+import {
+  Bell,
+  Loader,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Moon,
+  Sun,
+  X,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { ScanDialog } from "../common/ScanDialog";
@@ -18,6 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { ScrollArea } from "../ui/scroll-area";
 
 const Header = () => {
   const user = useAppStore((state) => state.user);
@@ -78,32 +88,62 @@ const Header = () => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuLabel className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Notifications
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
-
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground p-2">Loading...</p>
-            ) : notifications.length === 0 ? (
-              <p className="text-sm text-muted-foreground p-2">
-                No new notifications
-              </p>
-            ) : (
-              notifications.slice(0, 10).map((n) => (
-                <DropdownMenuItem
-                  key={n._id}
-                  className={`flex flex-col items-start gap-1 cursor-pointer ${
-                    n.isRead ? "opacity-70" : ""
-                  }`}
-                  onClick={() => router.push("/dashboard/messages")}
-                >
-                  <p className="text-sm font-medium">{n.title}</p>
-                  <p className="text-xs text-muted-foreground">{n.message}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {formatTimestamp(n.createdAt)}
+            <ScrollArea className="h-96">
+              {isLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">
+                    Loading...
+                  </span>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  <MessageSquare className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    No new notifications
                   </p>
-                </DropdownMenuItem>
-              ))
-            )}
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <DropdownMenuItem
+                    key={n._id}
+                    className={`flex items-start gap-3 p-3 cursor-pointer hover:bg-muted transition-colors ${
+                      n.isRead ? "opacity-50" : ""
+                    }`}
+                    onClick={() => router.push("/dashboard/messages")}
+                  >
+                    {/* Message Icon */}
+                    <div
+                      className={`flex-shrink-0 mt-0.5 ${
+                        n.isRead ? "text-muted-foreground" : "text-primary"
+                      }`}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </div>
+
+                    {/* Notification Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`text-sm font-medium truncate`}>
+                          {n.title}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {n.message}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-1.5">
+                        {formatTimestamp(n.createdAt)}
+                      </p>
+                    </div>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </ScrollArea>
           </DropdownMenuContent>
         </DropdownMenu>
         <DropdownMenu>

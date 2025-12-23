@@ -7,7 +7,7 @@ export default function Message() {
     <Suspense
       fallback={
         <div className="flex justify-center items-center h-screen">
-          <Loader className="animate-spin" />
+          <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       }
     >

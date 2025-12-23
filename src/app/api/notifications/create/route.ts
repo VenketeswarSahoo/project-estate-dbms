@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-    const { userId, title, message } = await request.json();
+    const { userId, title, message, relatedId } = await request.json();
 
     if (!userId || !title || !message) {
       return NextResponse.json(
@@ -14,10 +14,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("Creating notification with relatedId:", relatedId);
+
     const notification = await Notification.create({
       userId,
       title,
       message,
+      relatedId,
     });
 
     return NextResponse.json(notification, { status: 201 });

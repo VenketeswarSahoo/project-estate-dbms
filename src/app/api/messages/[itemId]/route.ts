@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import Message from "@/models/Message";
+import NotificationModel from "@/models/Notification";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
@@ -16,6 +17,14 @@ export async function PUT(
       new: true,
       runValidators: true,
     });
+
+    if (data.read) {
+      console.log("Marking notification as read for message ID:", itemId);
+      await NotificationModel.findOneAndUpdate(
+        { relatedId: itemId },
+        { isRead: true }
+      );
+    }
 
     if (!message) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });

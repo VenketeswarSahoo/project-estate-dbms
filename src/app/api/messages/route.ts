@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/db";
 import Message from "@/models/Message";
+import NotificationModel from "@/models/Notification";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -50,6 +51,18 @@ export async function PATCH(request: NextRequest) {
       { _id: { $in: ids } },
       { $set: update }
     );
+
+    // If marking as read, update related notifications
+    if (update.read) {
+      console.log("Marking notifications as read for message IDs:", ids);
+      // Import Notification here to avoid circular dependencies if any,
+      // though typically models are fine.
+      const updateResult = await NotificationModel.updateMany(
+        { relatedId: { $in: ids } },
+        { $set: { isRead: true } }
+      );
+      console.log("Notification update result:", updateResult);
+    }
 
     return NextResponse.json({
       message: "Messages updated successfully",

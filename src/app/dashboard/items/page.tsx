@@ -135,7 +135,7 @@ export default function ItemsPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -168,7 +168,7 @@ export default function ItemsPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader className="animate-spin h-8 w-8" />
+          <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <ItemTable
@@ -203,7 +203,7 @@ export default function ItemsPage() {
             >
               {deleteMutation.isPending ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
                 </>
               ) : (
                 "Delete"

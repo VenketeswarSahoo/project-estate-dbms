@@ -183,7 +183,7 @@ export default function ExecutorsPage() {
             >
               {deleteMutation.isPending ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
                 </>
               ) : (
                 "Delete"

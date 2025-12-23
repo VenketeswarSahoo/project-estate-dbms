@@ -94,7 +94,7 @@ export default function ItemDetailsPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -102,7 +102,7 @@ export default function ItemDetailsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -390,7 +390,7 @@ export default function ItemDetailsPage() {
             >
               {deleteMutation.isPending ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
                 </>
               ) : (
                 "Delete"

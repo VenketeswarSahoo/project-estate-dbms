@@ -1,14 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-
-export interface Notification {
-  _id: string;
-  userId: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MarkMessagesReadParams, Notification } from "@/types/new-message";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useNotifications(userId?: string) {
   return useQuery({
@@ -20,5 +11,29 @@ export function useNotifications(userId?: string) {
       return res.json() as Promise<Notification[]>;
     },
     refetchInterval: 10 * 1000,
+  });
+}
+
+export function useMarkMessagesRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids, update }: MarkMessagesReadParams) => {
+      const res = await fetch(`/api/messages`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, update }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to mark messages as read");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["messages"] });
+    },
   });
 }

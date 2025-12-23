@@ -34,3 +34,18 @@ export interface TabbedUserViewProps {
   searchQuery: string;
   isLoading: boolean;
 }
+
+export interface Notification {
+  _id: string;
+  userId: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MarkMessagesReadParams {
+  ids: string[];
+  update: { read: boolean };
+}

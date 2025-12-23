@@ -44,7 +44,7 @@ export default function NewItemPage() {
   if (isUsersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader className="animate-spin h-8 w-8" />
+        <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }

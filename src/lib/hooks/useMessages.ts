@@ -59,6 +59,7 @@ export function useMessageMutation() {
             userId: message.receiverId,
             title: `${user.name || "Someone"} sent you a message`,
             message: "Please check your inbox to read it.",
+            relatedId: message._id || message.id,
           }),
         }).catch((err) => console.error("Failed to create notification:", err));
       }
