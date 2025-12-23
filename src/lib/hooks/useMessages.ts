@@ -43,26 +43,7 @@ export function useMessageMutation() {
       if (!res.ok) throw new Error("Operation failed");
       const message = await res.json();
 
-      const user = await fetch(`/api/users/${message.senderId}`).then((res) =>
-        res.json()
-      );
-
-      if (
-        message?.receiverId &&
-        message?.senderId !== message?.receiverId &&
-        user
-      ) {
-        fetch("/api/notifications/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: message.receiverId,
-            title: `${user.name || "Someone"} sent you a message`,
-            message: "Please check your inbox to read it.",
-            relatedId: message._id || message.id,
-          }),
-        }).catch((err) => console.error("Failed to create notification:", err));
-      }
+      /* Notification logic moved to backend */
 
       return message;
     },

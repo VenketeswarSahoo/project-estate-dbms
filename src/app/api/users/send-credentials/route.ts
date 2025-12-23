@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const html = introductoryEmailTemplate({ email, role, password });
     await sendMail({
       to: email,
-      subject: `Welcome to Our System, Estate Software`,
+      subject: `Welcome to Onarach Estate App`,
       html,
     });
 

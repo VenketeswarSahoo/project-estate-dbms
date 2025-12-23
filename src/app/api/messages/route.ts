@@ -1,6 +1,9 @@
 import dbConnect from "@/lib/db";
 import Message from "@/models/Message";
 import NotificationModel from "@/models/Notification";
+import User from "@/models/User";
+import { messageNotificationTemplate } from "@/lib/templates/emailTemplates";
+import { sendMail } from "@/lib/utils/nodemailer";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -28,7 +31,44 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
     const data = await request.json();
-    const message = await Message.create(data);
+    const newMessage = await Message.create(data);
+    const message = Array.isArray(newMessage) ? newMessage[0] : newMessage;
+
+    // Background task: Handle notification and email
+    (async () => {
+      try {
+        if (message.receiverId && message.senderId !== message.receiverId) {
+          const user = await User.findById(message.receiverId);
+          const sender = await User.findById(message.senderId);
+
+          if (user) {
+            // Create in-app notification
+            await NotificationModel.create({
+              userId: message.receiverId,
+              title: `${sender?.name || "Someone"} sent you a message`,
+              message: "Please check your inbox to read it.",
+              relatedId: String(message._id || message.id),
+            });
+
+            // Send email notification
+            if (user.email) {
+              const emailHtml = messageNotificationTemplate({
+                recipientName: user.name,
+              });
+              await sendMail({
+                to: user.email,
+                subject: "New Message Notification - Onarach Estate App",
+                html: emailHtml,
+              });
+              console.log(`Email notification sent to ${user.email}`);
+            }
+          }
+        }
+      } catch (backgroundError) {
+        console.error("Background notification error:", backgroundError);
+      }
+    })();
+
     return NextResponse.json(message, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });
