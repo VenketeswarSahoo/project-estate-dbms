@@ -16,7 +16,7 @@ interface UseItemPhotosUploadOptions {
 export function useItemPhotosUpload<T extends Record<string, any>>({
   onUploadSuccess,
   onUploadError,
-  maxSizeKB = 2048,
+  maxSizeKB = 12288,
   maxFiles = 10,
 }: UseItemPhotosUploadOptions = {}) {
   const [isUploading, setIsUploading] = useState(false);
