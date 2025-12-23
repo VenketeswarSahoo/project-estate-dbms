@@ -112,6 +112,7 @@ export function BeneficiaryForm({
                   {...field}
                   type="text"
                   maxLength={50}
+                  minLength={2}
                 />
               </FormControl>
               <FormMessage />
@@ -131,7 +132,7 @@ export function BeneficiaryForm({
                   {...field}
                   type="email"
                   minLength={5}
-                  maxLength={50}
+                  maxLength={254}
                 />
               </FormControl>
               <FormMessage />
@@ -154,7 +155,7 @@ export function BeneficiaryForm({
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
                   minLength={8}
-                  maxLength={50}
+                  maxLength={64}
                   {...field}
                 />
               </FormControl>

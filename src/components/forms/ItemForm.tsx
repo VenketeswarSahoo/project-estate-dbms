@@ -197,6 +197,7 @@ export function ItemForm({
                       readOnly={effectiveReadOnly}
                       disabled={loading}
                       maxLength={120}
+                      minLength={2}
                     />
                   </FormControl>
                   <FormMessage />
@@ -335,6 +336,7 @@ export function ItemForm({
                             type="text"
                             allowNumbers
                             maxLength={50}
+                            minLength={2}
                           />
                         </div>
                       ) : showDonationSelect ? (
@@ -348,6 +350,7 @@ export function ItemForm({
                             type="text"
                             allowNumbers
                             maxLength={50}
+                            minLength={2}
                           />
                           <datalist id="saved-donations">
                             {currentClient?.savedDonationRecipients?.map(
@@ -368,6 +371,7 @@ export function ItemForm({
                             type="text"
                             allowNumbers
                             maxLength={50}
+                            minLength={2}
                           />
                         </div>
                       ) : (
@@ -379,6 +383,7 @@ export function ItemForm({
                           type="text"
                           allowNumbers
                           maxLength={50}
+                          minLength={2}
                         />
                       )}
                     </FormControl>

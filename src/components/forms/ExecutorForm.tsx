@@ -112,6 +112,7 @@ export function ExecutorForm({
                   {...field}
                   type="text"
                   maxLength={50}
+                  minLength={2}
                 />
               </FormControl>
               <FormMessage />
@@ -130,7 +131,7 @@ export function ExecutorForm({
                   placeholder="executor@example.com"
                   {...field}
                   type="email"
-                  maxLength={50}
+                  maxLength={254}
                   minLength={5}
                 />
               </FormControl>
@@ -154,7 +155,7 @@ export function ExecutorForm({
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
                   {...field}
-                  maxLength={50}
+                  maxLength={64}
                   minLength={8}
                 />
               </FormControl>

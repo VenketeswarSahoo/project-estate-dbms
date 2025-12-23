@@ -50,7 +50,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoggingIn}
                 minLength={5}
-                maxLength={50}
+                maxLength={254}
               />
             </div>
             <div className="space-y-2">
@@ -64,7 +64,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoggingIn}
                 minLength={8}
-                maxLength={50}
+                maxLength={64}
               />
             </div>
             <div className="text-xs text-muted-foreground mt-2">

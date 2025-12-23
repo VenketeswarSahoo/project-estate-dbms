@@ -108,6 +108,7 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
                   {...field}
                   type="text"
                   maxLength={50}
+                  minLength={2}
                 />
               </FormControl>
               <FormMessage />
@@ -126,8 +127,8 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
                   placeholder="agent@example.com"
                   {...field}
                   type="email"
-                  maxLength={50}
-                  min={5}
+                  maxLength={254}
+                  minLength={5}
                 />
               </FormControl>
               <FormMessage />
@@ -149,8 +150,8 @@ export function AgentForm({ initialData, onSubmit, loading }: AgentFormProps) {
                 <Input
                   type="password"
                   placeholder={initialData ? "••••••••" : "Password"}
-                  maxLength={50}
-                  min={8}
+                  maxLength={64}
+                  minLength={8}
                   {...field}
                 />
               </FormControl>

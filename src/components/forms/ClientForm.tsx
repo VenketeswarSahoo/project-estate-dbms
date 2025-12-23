@@ -108,6 +108,7 @@ export function ClientForm({
                       placeholder="The Smith Estate"
                       type="text"
                       maxLength={50}
+                      minLength={2}
                       readOnly={isReadOnly}
                       disabled={loading}
                       className="text-sm sm:text-base h-10 sm:h-11"
@@ -137,7 +138,7 @@ export function ClientForm({
                       type="email"
                       inputMode="email"
                       autoComplete="email"
-                      maxLength={50}
+                      maxLength={254}
                       minLength={5}
                       {...field}
                     />
@@ -166,7 +167,8 @@ export function ClientForm({
                       className="text-sm sm:text-base h-10 sm:h-11"
                       type="text"
                       allowNumbers
-                      maxLength={250}
+                      maxLength={256}
+                      minLength={5}
                       {...field}
                     />
                   </FormControl>
