@@ -235,7 +235,7 @@ export function ItemGridView({
                             variant="default"
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/dashboard/items/${item.id}/edit`);
+                              router.push(`/dashboard/items/${item.id}`);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
