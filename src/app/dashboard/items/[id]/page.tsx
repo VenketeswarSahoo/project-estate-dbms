@@ -202,9 +202,9 @@ export default function ItemDetailsPage() {
   };
 
   const handlePrintClick = () => {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
 
-    if (isMobile) {
+    if (isAndroid) {
       const imageUrl = generateBarcodeDataUrl(item);
       const count = item.pieces || 1;
 
