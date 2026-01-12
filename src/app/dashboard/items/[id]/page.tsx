@@ -208,7 +208,14 @@ export default function ItemDetailsPage() {
       const imageUrl = generateBarcodeDataUrl(item);
       const count = item.pieces || 1;
 
+      // Lazy cleanup: Remove old iframe if it exists
+      const oldIframe = document.getElementById("print-iframe");
+      if (oldIframe) {
+        document.body.removeChild(oldIframe);
+      }
+
       const iframe = document.createElement("iframe");
+      iframe.id = "print-iframe";
       iframe.style.position = "fixed";
       iframe.style.top = "-9999px";
       iframe.style.left = "-9999px";
@@ -265,11 +272,6 @@ export default function ItemDetailsPage() {
         setTimeout(() => {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
-
-          // Cleanup
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-          }, 5000);
         }, 500);
       }
     } else {
