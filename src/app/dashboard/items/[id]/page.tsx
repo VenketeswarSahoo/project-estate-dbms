@@ -20,6 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useDeleteItem, useItemMutation, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
+import {
+  generateBarcodeDataUrl,
+  generateBarcodePDF,
+} from "@/lib/utils/pdf-generator";
 import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
 import {
@@ -197,6 +201,82 @@ export default function ItemDetailsPage() {
     setCurrentIndex(index);
   };
 
+  const handlePrintClick = () => {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      const imageUrl = generateBarcodeDataUrl(item);
+      const count = item.pieces || 1;
+
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.top = "-9999px";
+      iframe.style.left = "-9999px";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "none";
+
+      document.body.appendChild(iframe);
+
+      // Build HTML content
+      let imagesHtml = "";
+      for (let i = 0; i < count; i++) {
+        imagesHtml += `<div class="barcode-container"><img src="${imageUrl}" /></div>`;
+      }
+
+      const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    @media print {
+                        @page { margin: 0; }
+                        body { margin: 10px; }
+                        .barcode-container { 
+                            display: inline-block; 
+                            margin: 10px; 
+                            width: 60mm; 
+                            height: 25mm; 
+                            text-align: center; 
+                            page-break-inside: avoid;
+                        }
+                        img { 
+                            width: 100%; 
+                            height: 100%; 
+                            object-fit: contain;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                ${imagesHtml}
+            </body>
+            </html>
+        `;
+
+      // Write to iframe
+      const doc = iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+
+        // Wait for images to load
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+
+          // Cleanup
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 5000);
+        }, 500);
+      }
+    } else {
+      setPdfModalOpen(true);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
@@ -307,7 +387,7 @@ export default function ItemDetailsPage() {
                   variant="default"
                   size="sm"
                   className="w-full"
-                  onClick={() => setPdfModalOpen(true)}
+                  onClick={handlePrintClick}
                   disabled={itemMutation.isPending}
                 >
                   <Printer className="h-3.5 w-3.5 mr-2" />

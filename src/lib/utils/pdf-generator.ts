@@ -45,3 +45,15 @@ export const generateBarcodePDF = (item: Item, count: number = 1): string => {
 
   return doc.output("datauristring"); // returns Base64 PDF preview
 };
+
+export const generateBarcodeDataUrl = (item: Item): string => {
+  const canvas = document.createElement("canvas");
+  JsBarcode(canvas, item.barcode, {
+    format: "CODE128",
+    width: 1.5,
+    height: 30,
+    displayValue: true,
+    fontSize: 10,
+  });
+  return canvas.toDataURL("image/png");
+};
