@@ -17,7 +17,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDeleteItem, useItemMutation, useItems } from "@/lib/hooks/useItems";
 import { useUsers } from "@/lib/hooks/useUsers";
 import {
@@ -55,6 +64,8 @@ export default function ItemDetailsPage() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [printSettingsOpen, setPrintSettingsOpen] = useState(false);
+  const [printQuantity, setPrintQuantity] = useState(1);
   const [copied, setCopied] = useState(false);
 
   const itemId = params.id as string;
@@ -202,194 +213,333 @@ export default function ItemDetailsPage() {
     setCurrentIndex(index);
   };
 
-  const handlePrintClick = () => {
+  const handlePrintButtonClick = () => {
     const isAndroid = /Android/i.test(navigator.userAgent);
 
     if (isAndroid) {
-      const imageUrl = generateBarcodeDataUrl(item);
-      const count = item.pieces || 1;
-      const dateStr = new Date().toLocaleDateString();
-
-      const oldIframe = document.getElementById("print-iframe");
-      if (oldIframe) {
-        document.body.removeChild(oldIframe);
-      }
-
-      const iframe = document.createElement("iframe");
-      iframe.id = "print-iframe";
-      iframe.style.position = "fixed";
-      iframe.style.top = "-9999px";
-      iframe.style.left = "-9999px";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "none";
-
-      document.body.appendChild(iframe);
-
-      let imagesHtml = "";
-      for (let i = 0; i < count; i++) {
-        imagesHtml += `
-            <div class="label-container">
-                <!-- Zone 1: Header -->
-                <div class="header-zone">
-                    <div class="indicator-box">E</div>
-                    <div class="header-info">
-                        <div class="company-title">ONARACH ESTATE APP</div>
-                        <div class="meta-info">UID: ${item.uid}</div>
-                        <div class="meta-info">DATE: ${dateStr}</div>
-                    </div>
-                </div>
-
-                <!-- Zone 2: Banner -->
-                <div class="banner-zone">
-                    OFFICIAL INVENTORY
-                </div>
-
-                <!-- Zone 3: Address / Details -->
-                <div class="address-zone">
-                    <!-- <div class="sub-label">FROM:</div>
-                    <div class="address-line">ONARACH WAREHOUSE</div>
-                    
-                    <div class="spacer"></div>
-                    
-                    <div class="sub-label">TO:</div> -->
-                    <div class="item-name">${item.name}</div>
-                    <div class="piece-count">PIECE ${i + 1} OF ${count}</div>
-                </div>
-
-                <!-- Zone 4: Barcode -->
-                <div class="barcode-zone">
-                    <div class="tracking-label">TRACKING #</div>
-                    <div class="barcode-img-wrapper">
-                        <img src="${imageUrl}" />
-                    </div>
-                </div>
-            </div>`;
-      }
-
-      const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    @media print {
-                        @page { size: 101.6mm 152.4mm; margin: 0; }
-                        body { margin: 0; padding: 0; font-family: sans-serif; width: 101.6mm; height: 152.4mm; overflow: hidden; }
-                        html { margin: 0; padding: 0; width: 101.6mm; height: 152.4mm; overflow: hidden; }
-                        
-                        * { box-sizing: border-box; }
-
-                        .label-container { 
-                            width: 101.6mm;
-                            height: 152.4mm;
-                            padding: 4mm;
-                            position: relative;
-                            page-break-after: always;
-                            display: flex;
-                            flex-direction: column;
-                            border: 1px solid #ccc; /* Tiny guide border, maybe remove if strictly not needed */
-                        }
-                        .label-container:last-child {
-                            page-break-after: avoid;
-                        }
-
-                        /* Zone 1 */
-                        .header-zone {
-                            display: flex;
-                            align-items: flex-start;
-                            margin-bottom: 2mm;
-                        }
-                        .indicator-box {
-                            width: 18mm;
-                            height: 18mm;
-                            border: 2px solid black;
-                            font-size: 32pt;
-                            font-weight: bold;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin-right: 4mm;
-                        }
-                        .header-info {
-                            flex: 1;
-                            padding-top: 2mm;
-                        }
-                        .company-title { font-size: 10pt; font-weight: bold; margin-bottom: 1mm; }
-                        .meta-info { font-family: monospace; font-size: 8pt; margin-bottom: 1mm; }
-
-                        /* Zone 2 */
-                        .banner-zone {
-                            border-top: 1.5mm solid black;
-                            border-bottom: 0.5mm solid black;
-                            padding: 2mm 0;
-                            text-align: center;
-                            font-size: 14pt;
-                            font-weight: bold;
-                            margin-bottom: 4mm;
-                        }
-
-                        /* Zone 3 */
-                        .address-zone {
-                            flex: 1; /* Take remaining space until barcode */
-                            padding-left: 2mm;
-                        }
-                        .sub-label { font-size: 7pt; color: #333; margin-bottom: 0.5mm; }
-                        .address-line { font-size: 9pt; font-weight: bold; margin-bottom: 2mm; }
-                        .spacer { height: 2mm; }
-                        .item-name { 
-                            font-size: 20pt; 
-                            font-weight: bold; 
-                            line-height: 1.1; 
-                            margin-bottom: 2mm; 
-                            text-transform: uppercase;
-                        }
-                        .piece-count { font-size: 10pt; color: #555; }
-
-                        /* Zone 4 */
-                        .barcode-zone {
-                            height: 45mm;
-                            border-top: 2mm solid black;
-                            padding-top: 2mm;
-                            display: flex;
-                            flex-direction: column;
-                            /* align-items: center; */
-                        }
-                        .tracking-label { font-size: 9pt; font-weight: bold; margin-bottom: 1mm; }
-                        .barcode-img-wrapper {
-                            width: 100%;
-                            height: 100%;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                        }
-                        img {
-                            max-width: 95%;
-                            max-height: 100%;
-                            object-fit: contain;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                ${imagesHtml}
-            </body>
-            </html>
-        `;
-
-      const doc = iframe.contentWindow?.document;
-      if (doc) {
-        doc.open();
-        doc.write(htmlContent);
-        doc.close();
-
-        setTimeout(() => {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        }, 500);
-      }
+      setPrintQuantity(item.pieces || 1);
+      setPrintSettingsOpen(true);
     } else {
       setPdfModalOpen(true);
     }
+  };
+
+  const handlePrintWithQuantity = (quantity: number) => {
+    const imageUrl = generateBarcodeDataUrl(item);
+    const dateStr = new Date().toLocaleDateString();
+
+    const oldIframe = document.getElementById("print-iframe");
+    if (oldIframe) {
+      document.body.removeChild(oldIframe);
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "print-iframe";
+    iframe.style.position = "fixed";
+    iframe.style.top = "-9999px";
+    iframe.style.left = "-9999px";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+
+    document.body.appendChild(iframe);
+
+    let imagesHtml = "";
+    for (let i = 0; i < quantity; i++) {
+      imagesHtml += `
+        <div class="label-container" style="page-break-after: always; page-break-inside: avoid;">
+            <!-- Zone 1: Header -->
+            <div class="header-zone">
+                <div class="indicator-box">E</div>
+                <div class="header-info">
+                    <div class="company-title">ONARACH ESTATE APP</div>
+                    <div class="meta-info">UID: ${item.uid}</div>
+                    <div class="meta-info">DATE: ${dateStr}</div>
+                </div>
+            </div>
+
+            <!-- Zone 2: Banner -->
+            <div class="banner-zone">
+                OFFICIAL INVENTORY
+            </div>
+
+            <!-- Zone 3: Address / Details -->
+            <div class="address-zone">
+                <div class="item-name">${item.name}</div>
+                <div class="piece-count">PIECE ${i + 1} OF ${quantity}</div>
+            </div>
+
+            <!-- Zone 4: Barcode -->
+            <div class="barcode-zone">
+                <div class="tracking-label">TRACKING #</div>
+                <div class="barcode-img-wrapper">
+                    <img src="${imageUrl}" />
+                </div>
+            </div>
+        </div>`;
+    }
+
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Print Labels - ${item.name}</title>
+            <style>
+                @page { 
+                    size: 4in 6in; 
+                    margin: 0; 
+                }
+                
+                @media print {
+                    body { 
+                        margin: 0; 
+                        padding: 0; 
+                        font-family: sans-serif; 
+                        width: 4in; 
+                        background: white;
+                    }
+                    html { 
+                        margin: 0; 
+                        padding: 0; 
+                        width: 4in; 
+                    }
+                    
+                    * { box-sizing: border-box; }
+
+                    .label-container { 
+                        width: 4in;
+                        height: 6in;
+                        padding: 0.15in;
+                        position: relative;
+                        page-break-after: always;
+                        page-break-inside: avoid;
+                        display: flex;
+                        flex-direction: column;
+                        border: 1px solid #ccc;
+                        background: white;
+                    }
+                    .label-container:last-child {
+                        page-break-after: auto;
+                    }
+
+                    /* Zone 1 */
+                    .header-zone {
+                        display: flex;
+                        align-items: flex-start;
+                        margin-bottom: 0.08in;
+                    }
+                    .indicator-box {
+                        width: 0.7in;
+                        height: 0.7in;
+                        border: 2px solid black;
+                        font-size: 32pt;
+                        font-weight: bold;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 0.15in;
+                        flex-shrink: 0;
+                    }
+                    .header-info {
+                        flex: 1;
+                        padding-top: 0.08in;
+                    }
+                    .company-title { 
+                        font-size: 10pt; 
+                        font-weight: bold; 
+                        margin-bottom: 0.04in; 
+                    }
+                    .meta-info { 
+                        font-family: monospace; 
+                        font-size: 8pt; 
+                        margin-bottom: 0.04in; 
+                    }
+
+                    /* Zone 2 */
+                    .banner-zone {
+                        border-top: 0.06in solid black;
+                        border-bottom: 0.02in solid black;
+                        padding: 0.08in 0;
+                        text-align: center;
+                        font-size: 14pt;
+                        font-weight: bold;
+                        margin-bottom: 0.15in;
+                    }
+
+                    /* Zone 3 */
+                    .address-zone {
+                        flex: 1;
+                        padding-left: 0.08in;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                    }
+                    .item-name { 
+                        font-size: 20pt; 
+                        font-weight: bold; 
+                        line-height: 1.1; 
+                        margin-bottom: 0.08in; 
+                        text-transform: uppercase;
+                        word-wrap: break-word;
+                    }
+                    .piece-count { 
+                        font-size: 10pt; 
+                        color: #555; 
+                    }
+
+                    /* Zone 4 */
+                    .barcode-zone {
+                        height: 1.8in;
+                        border-top: 0.08in solid black;
+                        padding-top: 0.08in;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .tracking-label { 
+                        font-size: 9pt; 
+                        font-weight: bold; 
+                        margin-bottom: 0.04in; 
+                    }
+                    .barcode-img-wrapper {
+                        flex: 1;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    .barcode-img-wrapper img {
+                        max-width: 95%;
+                        max-height: 100%;
+                        object-fit: contain;
+                    }
+                }
+
+                @media screen {
+                    body {
+                        background: #f5f5f5;
+                        padding: 20px;
+                    }
+                    .label-container {
+                        width: 4in;
+                        height: 6in;
+                        padding: 0.15in;
+                        margin: 0 auto 20px;
+                        background: white;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        display: flex;
+                        flex-direction: column;
+                        border: 1px solid #ccc;
+                    }
+                    .header-zone {
+                        display: flex;
+                        align-items: flex-start;
+                        margin-bottom: 0.08in;
+                    }
+                    .indicator-box {
+                        width: 0.7in;
+                        height: 0.7in;
+                        border: 2px solid black;
+                        font-size: 32pt;
+                        font-weight: bold;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 0.15in;
+                        flex-shrink: 0;
+                    }
+                    .header-info {
+                        flex: 1;
+                        padding-top: 0.08in;
+                    }
+                    .company-title { 
+                        font-size: 10pt; 
+                        font-weight: bold; 
+                        margin-bottom: 0.04in; 
+                    }
+                    .meta-info { 
+                        font-family: monospace; 
+                        font-size: 8pt; 
+                        margin-bottom: 0.04in; 
+                    }
+                    .banner-zone {
+                        border-top: 0.06in solid black;
+                        border-bottom: 0.02in solid black;
+                        padding: 0.08in 0;
+                        text-align: center;
+                        font-size: 14pt;
+                        font-weight: bold;
+                        margin-bottom: 0.15in;
+                    }
+                    .address-zone {
+                        flex: 1;
+                        padding-left: 0.08in;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                    }
+                    .item-name { 
+                        font-size: 20pt; 
+                        font-weight: bold; 
+                        line-height: 1.1; 
+                        margin-bottom: 0.08in; 
+                        text-transform: uppercase;
+                        word-wrap: break-word;
+                    }
+                    .piece-count { 
+                        font-size: 10pt; 
+                        color: #555; 
+                    }
+                    .barcode-zone {
+                        height: 1.8in;
+                        border-top: 0.08in solid black;
+                        padding-top: 0.08in;
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .tracking-label { 
+                        font-size: 9pt; 
+                        font-weight: bold; 
+                        margin-bottom: 0.04in; 
+                    }
+                    .barcode-img-wrapper {
+                        flex: 1;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    .barcode-img-wrapper img {
+                        max-width: 95%;
+                        max-height: 100%;
+                        object-fit: contain;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            ${imagesHtml}
+            <script>
+                window.addEventListener('load', function() {
+                    console.log('Page loaded with ${quantity} labels');
+                });
+            </script>
+        </body>
+        </html>
+    `;
+
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(htmlContent);
+      doc.close();
+
+      setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      }, 1000);
+    }
+
+    setPrintSettingsOpen(false);
   };
 
   return (
@@ -502,7 +652,7 @@ export default function ItemDetailsPage() {
                   variant="default"
                   size="sm"
                   className="w-full"
-                  onClick={handlePrintClick}
+                  onClick={handlePrintButtonClick}
                   disabled={itemMutation.isPending}
                 >
                   <Printer className="h-3.5 w-3.5 mr-2" />
@@ -594,6 +744,60 @@ export default function ItemDetailsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Print Settings Dialog for Android */}
+      <Dialog open={printSettingsOpen} onOpenChange={setPrintSettingsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Print Settings</DialogTitle>
+            <DialogDescription>
+              Configure print settings for {item.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Number of Labels</Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="1"
+                max="999"
+                value={printQuantity}
+                onChange={(e) =>
+                  setPrintQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">
+                Each label will be numbered (e.g., PIECE 1 OF {printQuantity})
+              </p>
+            </div>
+            <div className="rounded-lg border p-4 space-y-2 bg-muted/50">
+              <p className="text-sm font-medium">Print Instructions:</p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>In print preview, tap "More options" or settings icon</li>
+                <li>Set paper size to "Index Card 4x6" or "4 x 6 inches"</li>
+              </ol>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setPrintSettingsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handlePrintWithQuantity(printQuantity)}
+              className="w-full"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print {printQuantity} Label{printQuantity > 1 ? "s" : ""}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BarcodePDFSheet
         item={item}
