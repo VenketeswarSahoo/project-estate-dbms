@@ -79,6 +79,7 @@ export function BarcodePDFSheet({
               </Button>
               <Input
                 type="text"
+                allowNumbers
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={count}
