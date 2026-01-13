@@ -23,6 +23,7 @@ import { useUsers } from "@/lib/hooks/useUsers";
 import {
   generateBarcodeDataUrl,
   generateBarcodePDF,
+  generateBarcodePDFBlobUrl,
 } from "@/lib/utils/pdf-generator";
 import { useAppStore } from "@/store/useAppStore";
 import { Item, User } from "@/types";
@@ -207,8 +208,8 @@ export default function ItemDetailsPage() {
     if (isAndroid) {
       const imageUrl = generateBarcodeDataUrl(item);
       const count = item.pieces || 1;
+      const dateStr = new Date().toLocaleDateString();
 
-      // Lazy cleanup: Remove old iframe if it exists
       const oldIframe = document.getElementById("print-iframe");
       if (oldIframe) {
         document.body.removeChild(oldIframe);
@@ -225,10 +226,45 @@ export default function ItemDetailsPage() {
 
       document.body.appendChild(iframe);
 
-      // Build HTML content
       let imagesHtml = "";
       for (let i = 0; i < count; i++) {
-        imagesHtml += `<div class="barcode-container"><img src="${imageUrl}" /></div>`;
+        imagesHtml += `
+            <div class="label-container">
+                <!-- Zone 1: Header -->
+                <div class="header-zone">
+                    <div class="indicator-box">E</div>
+                    <div class="header-info">
+                        <div class="company-title">ONARACH ESTATE APP</div>
+                        <div class="meta-info">UID: ${item.uid}</div>
+                        <div class="meta-info">DATE: ${dateStr}</div>
+                    </div>
+                </div>
+
+                <!-- Zone 2: Banner -->
+                <div class="banner-zone">
+                    OFFICIAL INVENTORY
+                </div>
+
+                <!-- Zone 3: Address / Details -->
+                <div class="address-zone">
+                    <!-- <div class="sub-label">FROM:</div>
+                    <div class="address-line">ONARACH WAREHOUSE</div>
+                    
+                    <div class="spacer"></div>
+                    
+                    <div class="sub-label">TO:</div> -->
+                    <div class="item-name">${item.name}</div>
+                    <div class="piece-count">PIECE ${i + 1} OF ${count}</div>
+                </div>
+
+                <!-- Zone 4: Barcode -->
+                <div class="barcode-zone">
+                    <div class="tracking-label">TRACKING #</div>
+                    <div class="barcode-img-wrapper">
+                        <img src="${imageUrl}" />
+                    </div>
+                </div>
+            </div>`;
       }
 
       const htmlContent = `
@@ -237,19 +273,98 @@ export default function ItemDetailsPage() {
             <head>
                 <style>
                     @media print {
-                        @page { margin: 0; }
-                        body { margin: 10px; }
-                        .barcode-container { 
-                            display: inline-block; 
-                            margin: 10px; 
-                            width: 60mm; 
-                            height: 25mm; 
-                            text-align: center; 
-                            page-break-inside: avoid;
+                        @page { size: 101.6mm 152.4mm; margin: 0; }
+                        body { margin: 0; padding: 0; font-family: sans-serif; width: 101.6mm; height: 152.4mm; overflow: hidden; }
+                        html { margin: 0; padding: 0; width: 101.6mm; height: 152.4mm; overflow: hidden; }
+                        
+                        * { box-sizing: border-box; }
+
+                        .label-container { 
+                            width: 101.6mm;
+                            height: 152.4mm;
+                            padding: 4mm;
+                            position: relative;
+                            page-break-after: always;
+                            display: flex;
+                            flex-direction: column;
+                            border: 1px solid #ccc; /* Tiny guide border, maybe remove if strictly not needed */
                         }
-                        img { 
-                            width: 100%; 
-                            height: 100%; 
+                        .label-container:last-child {
+                            page-break-after: avoid;
+                        }
+
+                        /* Zone 1 */
+                        .header-zone {
+                            display: flex;
+                            align-items: flex-start;
+                            margin-bottom: 2mm;
+                        }
+                        .indicator-box {
+                            width: 18mm;
+                            height: 18mm;
+                            border: 2px solid black;
+                            font-size: 32pt;
+                            font-weight: bold;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-right: 4mm;
+                        }
+                        .header-info {
+                            flex: 1;
+                            padding-top: 2mm;
+                        }
+                        .company-title { font-size: 10pt; font-weight: bold; margin-bottom: 1mm; }
+                        .meta-info { font-family: monospace; font-size: 8pt; margin-bottom: 1mm; }
+
+                        /* Zone 2 */
+                        .banner-zone {
+                            border-top: 1.5mm solid black;
+                            border-bottom: 0.5mm solid black;
+                            padding: 2mm 0;
+                            text-align: center;
+                            font-size: 14pt;
+                            font-weight: bold;
+                            margin-bottom: 4mm;
+                        }
+
+                        /* Zone 3 */
+                        .address-zone {
+                            flex: 1; /* Take remaining space until barcode */
+                            padding-left: 2mm;
+                        }
+                        .sub-label { font-size: 7pt; color: #333; margin-bottom: 0.5mm; }
+                        .address-line { font-size: 9pt; font-weight: bold; margin-bottom: 2mm; }
+                        .spacer { height: 2mm; }
+                        .item-name { 
+                            font-size: 20pt; 
+                            font-weight: bold; 
+                            line-height: 1.1; 
+                            margin-bottom: 2mm; 
+                            text-transform: uppercase;
+                        }
+                        .piece-count { font-size: 10pt; color: #555; }
+
+                        /* Zone 4 */
+                        .barcode-zone {
+                            height: 45mm;
+                            border-top: 2mm solid black;
+                            padding-top: 2mm;
+                            display: flex;
+                            flex-direction: column;
+                            /* align-items: center; */
+                        }
+                        .tracking-label { font-size: 9pt; font-weight: bold; margin-bottom: 1mm; }
+                        .barcode-img-wrapper {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+                        img {
+                            max-width: 95%;
+                            max-height: 100%;
                             object-fit: contain;
                         }
                     }
@@ -261,14 +376,12 @@ export default function ItemDetailsPage() {
             </html>
         `;
 
-      // Write to iframe
       const doc = iframe.contentWindow?.document;
       if (doc) {
         doc.open();
         doc.write(htmlContent);
         doc.close();
 
-        // Wait for images to load
         setTimeout(() => {
           iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
@@ -286,7 +399,7 @@ export default function ItemDetailsPage() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/items")}
             aria-label="Go back"
             title="Navigate back"
           >
