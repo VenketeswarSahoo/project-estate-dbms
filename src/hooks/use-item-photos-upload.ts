@@ -1,7 +1,5 @@
 "use client";
 
-import { storage } from "@/lib/auth/firebase";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useState } from "react";
 import { FieldPath, UseFormSetValue } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,6 +9,17 @@ interface UseItemPhotosUploadOptions {
   onUploadError?: (error: any) => void;
   maxSizeKB?: number;
   maxFiles?: number;
+}
+
+async function uploadItemPhoto(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("category", "items");
+
+  const response = await fetch("/api/uploads", { method: "POST", body: formData });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "Upload failed");
+  return result.url;
 }
 
 export function useItemPhotosUpload<T extends Record<string, any>>({
@@ -24,36 +33,12 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const uploadSingleFile = async (file: File): Promise<string | null> => {
-    const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name}`;
-    const filePath = `items/${fileName}`;
-    const storageRef = ref(storage, filePath);
-
-    return new Promise<string | null>((resolve, reject) => {
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload progress for ${file.name}: ${progress}%`);
-        },
-        (error) => {
-          console.error("Firebase upload error for file:", file.name, error);
-          reject(error);
-        },
-        async () => {
-          try {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
-          } catch (error) {
-            console.error("Error getting download URL:", error);
-            reject(error);
-          }
-        }
-      );
-    });
+    try {
+      return await uploadItemPhoto(file);
+    } catch (error) {
+      console.error("Supabase item photo upload failed:", file.name, error);
+      throw error;
+    }
   };
 
   const validateFiles = (
@@ -174,42 +159,16 @@ export function useItemPhotosUpload<T extends Record<string, any>>({
     current: number,
     total: number
   ): Promise<string | null> => {
-    toast.loading(`Uploading ${current}/${total}: ${file.name}`);
-
-    const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name}`;
-    const filePath = `items/${fileName}`;
-    const storageRef = ref(storage, filePath);
-
-    return new Promise<string | null>((resolve, reject) => {
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(
-            `[${current}/${total}] ${file.name}: ${progress.toFixed(0)}%`
-          );
-        },
-        (error) => {
-          console.error("Firebase upload error:", error);
-          toast.dismiss();
-          reject(error);
-        },
-        async () => {
-          try {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            toast.dismiss();
-            resolve(url);
-          } catch (error) {
-            toast.dismiss();
-            reject(error);
-          }
-        }
-      );
-    });
+    try {
+      toast.loading(`Uploading ${current}/${total}: ${file.name}`);
+      const url = await uploadItemPhoto(file);
+      toast.dismiss();
+      return url;
+    } catch (error) {
+      toast.dismiss();
+      console.error("Supabase item photo upload failed:", error);
+      throw error;
+    }
   };
 
   const handleCameraCaptureUpload = async (

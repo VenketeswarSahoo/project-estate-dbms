@@ -1,7 +1,5 @@
 "use client";
 
-import { storage } from "@/lib/auth/firebase";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,38 +33,17 @@ export function useAvatarUpload({
     try {
       toast.loading("Uploading avatar...");
 
-      const timestamp = Date.now();
-      const fileName = `${timestamp}-${file.name}`;
-      const filePath = `avatars/${fileName}`;
-      const storageRef = ref(storage, filePath);
-
-      const fileUrl = await new Promise<string>((resolve, reject) => {
-        const uploadTask = uploadBytesResumable(storageRef, file);
-
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log(`Avatar upload: ${progress.toFixed(0)}%`);
-          },
-          (error) => {
-            console.error("Firebase avatar upload error:", error);
-            toast.dismiss();
-            reject(error);
-          },
-          async () => {
-            try {
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              toast.dismiss();
-              resolve(url);
-            } catch (error) {
-              toast.dismiss();
-              reject(error);
-            }
-          }
-        );
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", "avatars");
+      const response = await fetch("/api/uploads", {
+        method: "POST",
+        body: formData,
       });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Upload failed");
+      const fileUrl: string = result.url;
+      toast.dismiss();
 
       setAvatarPreview(fileUrl); // ✅ use the URL, not the path
       onUploadSuccess?.(fileUrl); // ✅ return URL to parent
